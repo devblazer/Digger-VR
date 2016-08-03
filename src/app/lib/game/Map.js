@@ -1,7 +1,7 @@
 import Sector from './Sector.js';
 import Plot from './Plot.js';
 
-const SECTOR_CACHE_LIMIT = 25;
+const SECTOR_CACHE_LIMIT = 600;
 
 export default class Map {
     constructor(size=64) {
@@ -35,7 +35,7 @@ export default class Map {
         const p = this._private;
         const str = x+'_'+y+'_'+z;
 
-        const sector = new Sector();
+        const sector = new Sector(x*8,y*8,z*8);
         sector.load(p.plots[x][y][z],x==3&&y==3&&z==1);
         p.sectors[str] = sector;
         if (p.sectorCache.length == SECTOR_CACHE_LIMIT) {
@@ -63,11 +63,11 @@ export default class Map {
             for (let py=Math.floor(y/8);py<=Math.floor((y+yl-1)/8);py++)
                 for (let pz=Math.floor(z/8);pz<=Math.floor((z+zl-1)/8);pz++) {
                     let sx = px==Math.floor(x/8) ? (x%8) : 0;
-                    let ex = px==Math.floor((x+xl-1)/8) ? (((x+xl-1)%8)+1) : (8-sx);
+                    let ex = px==Math.floor((x+xl-1)/8) ? (((x+xl-1)%8)+1-sx) : (8-sx);
                     let sy = py==Math.floor(y/8) ? (y%8) : 0;
-                    let ey = py==Math.floor((y+yl-1)/8) ? (((y+yl-1)%8)+1) : (8-sy);
+                    let ey = py==Math.floor((y+yl-1)/8) ? (((y+yl-1)%8)+1-sy) : (8-sy);
                     let sz = pz==Math.floor(z/8) ? (z%8) : 0;
-                    let ez = pz==Math.floor((z+zl-1)/8) ? (((z+zl-1)%8)+1) : (8-sz);
+                    let ez = pz==Math.floor((z+zl-1)/8) ? (((z+zl-1)%8)+1-sz) : (8-sz);
                     this.getSector(px*8,py*8,pz*8).fill(sx,sy,sz,val,ex,ey,ez);
                 }
         }
@@ -100,6 +100,44 @@ export default class Map {
             });
         });
         return c;
+    }
+
+    getForRender(){
+        const p = this._private;
+
+        const cnt = {};
+        const arrs = {};
+        const buffs = {};
+
+        for (let x = 0; x < p.size / 8; x++) {
+            for (let y = 0; y < p.size / 8; y++) {
+                for (let z = 0; z < p.size / 8; z++) {
+                    let rend = this.getSector(x*8,y*8,z*8).getForRender();
+                    for (let t in rend.tiles) {
+                        if (rend.tiles.hasOwnProperty(t)) {
+                            if (!cnt[t]) {
+                                cnt[t] = 0;
+                                arrs[t] = [];
+                            }
+                            arrs[t].push(rend.tiles[t].faces);
+                            cnt[t]+=rend.tiles[t].faces.buffer.byteLength;
+                        }
+                    }
+                }
+            }
+        }
+        for (let t in cnt) {
+            if (cnt.hasOwnProperty(t)) {
+                buffs[t] = new Float32Array(cnt[t]);
+                let pos = 0;
+                arrs[t].forEach(u8v=>{
+                    buffs[t].set(u8v,pos);
+                    pos+= u8v.buffer.byteLength;
+                });
+            }
+        }
+
+        return buffs;
     }
 
     exportSector(x,y,z){

@@ -12,8 +12,10 @@ const initGl = function(){
     const self = this._private;
     self.gl = self.canvas.getContext("webgl", { antialias: true });
     self.gl.viewport(0, 0, self.canvas.width, self.canvas.height);
-    self.gl.enable(self.gl.BLEND);
-    self.gl.blendFunc(self.gl.SRC_ALPHA, self.gl.ONE);
+    //self.gl.enable(self.gl.BLEND);
+    //self.gl.blendFunc(self.gl.SRC_ALPHA, self.gl.ONE);
+    self.gl.enable(self.gl.CULL_FACE);
+    self.gl.cullFace(self.gl.BACK);
 };
 
 const initScene = function(camera){
@@ -53,13 +55,21 @@ const initBuffer = function(glELEMENT_ARRAY_BUFFER, data){
     return buf;
 };
 
-const initBuffers = function(shaderName, vtx, idx){
+const initBuffers = function(shaderName, vtx, idx=null, textures=[]){
     const self = this._private;
     var shader = self.shaders[shaderName];
     var shaderProgram = shader.shader;
+
     self.gl.useProgram(shaderProgram);
     self.gl.uniformMatrix4fv(shaderProgram.pMUniform, false, new Float32Array(self.pMatrix));
     self.gl.uniformMatrix4fv(shaderProgram.mvMUniform, false, new Float32Array(self.mvMatrix));
+
+    textures.forEach((tex,ind)=>{
+        self.gl.activeTexture(self.gl['TEXTURE'+ind]);
+        self.gl.bindTexture(self.gl.TEXTURE_2D, self.textures[tex]);
+        self.gl.uniform1i(self.gl.getUniformLocation(shaderProgram,'tex'+ind),ind);
+    });
+
     self.vbuf = initBuffer.call(this,self.gl.ARRAY_BUFFER, vtx);
     if (idx)
         self.ibuf = initBuffer.call(this, self.gl.ELEMENT_ARRAY_BUFFER, idx);
@@ -68,12 +78,17 @@ const initBuffers = function(shaderName, vtx, idx){
         self.gl.vertexAttribPointer(shaderProgram[attr.name+'Attrib'], attr.count, self.gl[attr.type], false, shader.total, cumulative);
         cumulative+=(attr.size*attr.count);
     });
+    shader.uniforms.forEach(uniform=>{
+        self.gl['uniform'+uniform.type](shaderProgram[uniform.name+'Uniform'],uniform.value);
+    });
 };
 
 const unbindBuffers = function(){
     const self = this._private;
     self.gl.bindBuffer(self.gl.ARRAY_BUFFER, null);
     self.gl.bindBuffer(self.gl.ELEMENT_ARRAY_BUFFER, null);
+    self.gl.bindTexture(self.gl.TEXTURE_2D,null);
+    self.gl.deleteBuffer(self.vbuf);
 };
 
 export default class WebGL {
@@ -85,6 +100,7 @@ export default class WebGL {
             vbuf: null,
             ibuf: null,
             shaders: [],
+            textures:[],
             showFPS,
             fps:0,
             canvas: document.createElement('canvas')
@@ -102,12 +118,12 @@ export default class WebGL {
         initGl.call(this);
     }
 
-    createShader(shaderName, vertexShader, fragmentShader, attributes) {
+    createShader(shaderName, vertexShader, fragmentShader, attributes, uniforms=[]) {
         const self = this._private;
         var _vertexShader = getShader.call(this, self.gl.VERTEX_SHADER, vertexShader);
         var _fragmentShader = getShader.call(this, self.gl.FRAGMENT_SHADER, fragmentShader);
         var shaderProgram = self.gl.createProgram();
-        self.shaders[shaderName] = {shader:shaderProgram,attrs:attributes} ;
+        self.shaders[shaderName] = {shader:shaderProgram,attrs:attributes,uniforms} ;
         self.gl.attachShader(shaderProgram, _vertexShader);
         self.gl.attachShader(shaderProgram, _fragmentShader);
         self.gl.linkProgram(shaderProgram);
@@ -117,22 +133,46 @@ export default class WebGL {
             shaderProgram[attr.name+'Attrib'] = self.gl.getAttribLocation(shaderProgram, attr.name);
             self.gl.enableVertexAttribArray(shaderProgram[attr.name+'Attrib']);
         });
+        uniforms.forEach(uniform=>{
+            shaderProgram[uniform.name+'Uniform'] = self.gl.getUniformLocation(shaderProgram, uniform.name);
+        });
         self.shaders[shaderName].total = total;
         shaderProgram.pMUniform = self.gl.getUniformLocation(shaderProgram, "u_pMatrix");
         shaderProgram.mvMUniform = self.gl.getUniformLocation(shaderProgram, "u_mvMatrix");
     }
 
-    renderStart(camera){
-        initScene.call(this,camera);
+    createTexture(name,src,wrapX=true,wrapY=true,callback){
+        const self = this._private;
+        const tex = self.gl.createTexture();
+        tex.image = new Image();
+        tex.image.onload=function() {
+            self.gl.bindTexture(self.gl.TEXTURE_2D,tex);
+            self.gl.pixelStorei(self.gl.UNPACK_FLIP_Y_WEBGL,true);
+            self.gl.texImage2D(self.gl.TEXTURE_2D,0,self.gl.RGBA,self.gl.RGBA,self.gl.UNSIGNED_BYTE, tex.image);
+            self.gl.texParameteri(self.gl.TEXTURE_2D,self.gl.TEXTURE_MAG_FILTER,self.gl.LINEAR);
+            self.gl.texParameteri(self.gl.TEXTURE_2D,self.gl.TEXTURE_MIN_FILTER,self.gl.LINEAR_MIPMAP_NEAREST);
+            self.gl.texParameteri(self.gl.TEXTURE_2D,wrapX?self.gl.TEXTURE_WRAP_S:self.gl.CLAMP_TO_EDGE,self.gl.REPEAT);
+            self.gl.texParameteri(self.gl.TEXTURE_2D,wrapY?self.gl.TEXTURE_WRAP_T:self.gl.CLAMP_TO_EDGE,self.gl.REPEAT);
+            self.gl.generateMipmap(self.gl.TEXTURE_2D);
+            self.gl.bindTexture(self.gl.TEXTURE_2D,null);
+            if (callback)
+                callback();
+        };
+        tex.image.src = src;
+        self.textures[name] = tex;
     }
 
-    render(shader, primitiveType, vertexBuffer, primitiveCount, offset=0){
+    renderStart(camera){
         const self = this._private;
-
+        initScene.call(this,camera);
         if (self.showFPS)
             self.fps++;
+    }
 
-        initBuffers.call(this,shader,vertexBuffer);
+    render(shader, primitiveType, vertexBuffer, primitiveCount, offset=0,textures=[]){
+        const self = this._private;
+
+        initBuffers.call(this,shader,vertexBuffer,null,textures);
         self.gl.drawArrays(self.gl[primitiveType],offset, primitiveCount);
         unbindBuffers.call(this);
     }

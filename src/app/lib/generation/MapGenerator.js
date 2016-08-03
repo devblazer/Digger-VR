@@ -1,6 +1,6 @@
 import Util from './../Util.js';
 
-const TILE_INDEX_ROCK = 3;
+const TILE_INDEX_STONE = 3;
 const TILE_INDEX_GRASS = 2;
 const TILE_INDEX_DIRT = 1;
 const TILE_INDEX_EMPTY = false;
@@ -52,7 +52,7 @@ export default class MapGenerator {
         let sky = 0;
         let surface = 0;
         let dirt = 0;
-        let rock = 0;
+        let stone = 0;
         let cave = 0;
         let lastCount = -1;
 
@@ -72,29 +72,29 @@ export default class MapGenerator {
                                     dirt++;
                                 else if (val==TILE_INDEX_GRASS)
                                     surface++;
-                                else if (val==TILE_INDEX_ROCK)
-                                    rock++;
+                                else if (val==TILE_INDEX_STONE)
+                                    stone++;
                                 if (val!==TILE_INDEX_EMPTY)
                                     notEmptyTiles++;
                             }
                         }
                     }
-                    if (z==0)
+                    if (z==p.size-1)
                         sky += (8 * 8 * 8) - notEmptyTiles;
                     else
                         cave += (8 * 8 * 8) - notEmptyTiles;
                 }
             }
         }
-        return {sky,surface,dirt,rock,cave,rockRatio:Math.floor(rock/(rock+dirt+surface)*100)+'%',caveRatio:Math.floor(cave/(rock+dirt+surface+cave)*100)+'%'};
+        return {sky,surface,dirt,stone,cave,stoneRatio:Math.floor(stone/(stone+dirt+surface)*100)+'%',caveRatio:Math.floor(cave/(stone+dirt+surface+cave)*100)+'%'};
     }
 
     continent(skyRows=8){
         const p = this._private;
 
-        p.map.fill(0,0,0,TILE_INDEX_EMPTY,p.size,p.size,skyRows);
-        p.map.fill(0,0,skyRows,TILE_INDEX_GRASS,p.size,p.size,1);
-        p.map.fill(0,0,skyRows+1,TILE_INDEX_DIRT,p.size,p.size,p.size-skyRows-1);
+        p.map.fill(0,0,p.size-skyrows,TILE_INDEX_EMPTY,p.size,p.size,skyRows);
+        p.map.fill(0,0,p.size-skyRows-1,TILE_INDEX_GRASS,p.size,p.size,1);
+        p.map.fill(0,0,0,TILE_INDEX_DIRT,p.size,p.size,p.size-skyRows-1);
     }
 
     minerals(skyrows=8,type=3,ratio=0.5) {
@@ -109,7 +109,7 @@ export default class MapGenerator {
             lastCount = newCount;
             let z = Math.floor(Math.random() * (p.size - skyrows-2));
             let s = ((Math.random() * 6) + 2) * (z / (p.size) * skyrows);
-            this.splatter(Math.floor(Math.random() * p.size), Math.floor(Math.random() * p.size), z + skyrows+2, s/8,s/6,type);
+            this.splatter(Math.floor(Math.random() * p.size), Math.floor(Math.random() * p.size), p.size-(z + skyrows+2)-1, s/8,s/6,type);
         }
     }
 
@@ -146,7 +146,7 @@ export default class MapGenerator {
         tunnelCount = tunnelCount || (Math.random()*40)+5;
         x = x===null?(Math.random()*p.size):x;
         y = y===null?(Math.random()*p.size):y;
-        z = x===null&&y===null?((Math.random()*(p.size-z))+z):z;
+        z = x===null&&y===null?(64-(Math.random()*(p.size-z))-z):z;
 
         const activeTunnels = [[x,y,z]];
         for (let c=0;c<tunnelCount;c++) {
