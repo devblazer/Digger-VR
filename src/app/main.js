@@ -6,7 +6,6 @@ import Map from './lib/game/Map.js';
 import MapGenerator from './lib/generation/MapGenerator.js';
 import Tile from './lib/render/Tile.js';
 import glm from 'gl-matrix';
-console.log(glm);
 
 import TileFrag from './lib/render/shaders/tile/fragment.glsl';
 import TileVert from './lib/render/shaders/tile/vertex.glsl';
@@ -18,6 +17,7 @@ else
 
 function run() {
     const webGL = new WebGL(true);
+    const VIEW_DISTANCE = 17;
 
     webGL.createTexture('grass','/textures/grass.png');
     webGL.createTexture('grassEdge','/textures/grassEdge.png');
@@ -78,11 +78,6 @@ function run() {
         ]}
     ]);
 
-    window.sum1 = 0;
-    window.sum2 = 0;
-    window.sum3 = 0;
-    window.sum4 = 0;
-
     var lastTime = (new Date()).getTime();
 
     const mapSize = 64;
@@ -104,7 +99,7 @@ function run() {
         webGL.renderStart(camera,cameraFace,cameraUp);
 
         let tiles;
-        let tileGroups = map.getForRender(camera);
+        let tileGroups = map.getForRender(camera,cameraFace,VIEW_DISTANCE+5);
 
         faces = 0;
         for (let p in tileGroups)

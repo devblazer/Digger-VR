@@ -1,7 +1,16 @@
 import Sector from './Sector.js';
 import Plot from './Plot.js';
+import glm from 'gl-matrix';
+import Util from './../Util.js';
 
-const SECTOR_CACHE_LIMIT = 125;
+const SECTOR_CACHE_LIMIT = 200;
+const TYPE_BUFFER_SIZE = {
+    empty: 0,
+    dirt:2000000,
+    grass:500000,
+    grassEdge:1000000,
+    stone:1500000
+};
 
 export default class Map {
     constructor(size=64) {
@@ -103,7 +112,7 @@ export default class Map {
         return c;
     }
 
-    getForRender(camera,range=19){
+    getForRender(camera,cameraFace,range=22){
         const p = this._private;
 
         const cnt = {};
@@ -113,25 +122,32 @@ export default class Map {
         for (let x = Math.max(0,Math.floor((camera[0]-range)/8)); x < Math.min(p.size/8,Math.floor((camera[0]+range)/8)+1); x++) {
             for (let y = Math.max(0,Math.floor((camera[1]-range)/8)); y < Math.min(p.size/8,Math.floor((camera[1]+range)/8)+1); y++) {
                 for (let z = Math.max(0,Math.floor((camera[2]-range)/8)); z < Math.min(p.size/8,Math.floor((camera[2]+range)/8)+1); z++) {
-                    if (Math.sqrt(Math.pow(camera[0]-((x*8)+4),2) + Math.pow(camera[1]-((y*8)+4),2) + Math.pow(camera[2]-((z*8)+4),2))<=range) {
-                    let rend = this.getSector(x*8,y*8,z*8).getForRender(this);
-                    for (let t in rend.tiles) {
-                        if (rend.tiles.hasOwnProperty(t)) {
-                            if (!cnt[t]) {
-                                cnt[t] = 0;
-                                arrs[t] = [];
+                    let dist = Math.sqrt(Math.pow(camera[0]-((x*8)+4),2) + Math.pow(camera[1]-((y*8)+4),2) + Math.pow(camera[2]-((z*8)+4),2));
+                    if (dist<=range) {
+                        const tvec = glm.vec3.fromValues((x*8)+4-camera[0],(y*8)+4-camera[1],(z*8)+4-camera[2]);
+                        glm.vec3.normalize(tvec,tvec);
+                        let adiff = Util.rad2Deg(Math.acos(glm.vec3.dot(tvec,cameraFace)));
+                        if ((dist < range-2 && adiff<180-(dist*(120/(range-2)))) || adiff<60) {
+                            let rend = this.getSector(x * 8, y * 8, z * 8).getForRender(this);
+                            for (let t in rend.tiles) {
+                                if (rend.tiles.hasOwnProperty(t)) {
+                                    if (!cnt[t]) {
+                                        cnt[t] = 0;
+                                        arrs[t] = [];
+                                    }
+                                    arrs[t].push(rend.tiles[t].faces);
+                                    cnt[t] += rend.tiles[t].faces.buffer.byteLength;
+                                }
                             }
-                            arrs[t].push(rend.tiles[t].faces);
-                            cnt[t]+=rend.tiles[t].faces.buffer.byteLength;
                         }
                     }
-                }}
+                }
             }
         }
         for (let t in cnt) {
             if (cnt.hasOwnProperty(t)) {
                 if (!buffs[t])
-                    buffs[t] = {buf:new Float32Array(2000000),count:cnt[t]};
+                    buffs[t] = {buf:new Float32Array(Math.floor(TYPE_BUFFER_SIZE[t]/22*range)),count:cnt[t]};
                 else
                     buffs[t].count = cnt[t];
 

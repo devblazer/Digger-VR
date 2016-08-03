@@ -89,9 +89,7 @@ export default class Sector extends Cube {
             p.needsRender = false;
 
             p.renderData = {tiles:[]};
-            let ti = (new Date()).getTime();
             this.optimise();
-            window.sum1 += ((new Date()).getTime()-ti);
 
             for (let type in p.optimisedData)
                 if (p.optimisedData.hasOwnProperty(type)) {
@@ -104,26 +102,19 @@ export default class Sector extends Cube {
                             if (!p.renderData.tiles[t])
                                 p.renderData.tiles[t] = {type: t, faces: []};
                             let size = Math.pow(2, tile[3]);
-                            ti = (new Date()).getTime();
                             let res = checkFace((tile[0]*size)+p.x, (tile[1]*size)+p.y, (tile[2]*size)+p.z, size, f,map);
-                            window.sum2 += ((new Date()).getTime()-ti);
 
                             if (res) {
-                                ti = (new Date()).getTime();
                                 Tile.addFace((tile[0] * size) + p.x, (tile[1] * size) + p.y, (tile[2] * size) + p.z, size, f, p.renderData.tiles[t].faces);
-                                window.sum3 += ((new Date()).getTime()-ti);
                             }
                         }
                     });
                 }
-            ti = (new Date()).getTime();
             for (let type in p.renderData.tiles) {
                 if (p.renderData.tiles.hasOwnProperty(type)) {
                     p.renderData.tiles[type].faces = new Float32Array(p.renderData.tiles[type].faces);
                 }
             }
-            window.sum4 += ((new Date()).getTime()-ti);
-            console.log(Math.floor(window.sum1/1000),Math.floor(window.sum2/1000),Math.floor(window.sum3/1000),Math.floor(window.sum4/1000));
         }
         return p.renderData;
     }

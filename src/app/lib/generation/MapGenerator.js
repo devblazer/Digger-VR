@@ -24,13 +24,13 @@ export default class MapGenerator {
         if (p.size<64)
             tunnels = 6;
         else if (p.size<128)
-            tunnels = 60;
+            tunnels = 25;
         else if (p.size<256)
-            tunnels = 600;
+            tunnels = 200;
         else if (p.size<512)
-            tunnels = 6000;
+            tunnels = 1000;
         else
-            tunnels = 60000;
+            tunnels = 5000;
 
         let lastP = -1;
 
@@ -175,7 +175,7 @@ export default class MapGenerator {
     }
 
     tunnel(x,y,z,r=0,l=0,val=TILE_INDEX_EMPTY){
-        r = r || (Math.random()*4)+0.5;
+        r = r || (Math.random()*3.5)+0.6;
         l = l || (Math.random()*20)+5;
         const u = l/r*3;
         const v = Util.randomVector3();
