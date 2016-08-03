@@ -1,5 +1,6 @@
 import Util from './../Util.js';
 import $ from 'jquery';
+import glm from 'gl-matrix';
 
 const getShader = function( type, shaderImport) {
     var shader = this._private.gl.createShader(type);
@@ -18,10 +19,11 @@ const initGl = function(){
     self.gl.cullFace(self.gl.BACK);
 };
 
-const initScene = function(camera){
+const initScene = function(camera,lookAt,up){
     const self = this._private;
     self.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    self.mvMatrix = makeTranslation(-camera[0], -camera[1], -camera[2]);
+    //self.mvMatrix = makeTranslation(-camera[0], -camera[1], -camera[2]);
+    self.mvMatrix = makeView(lookAt,camera,up);
     self.pMatrix = makePerspective(Util.deg2Rad(60),self.canvas.clientWidth / self.canvas.clientHeight,1,10000)
 
     self.gl.enable(self.gl.DEPTH_TEST);
@@ -36,6 +38,24 @@ const makePerspective = function(fieldOfViewInRadians, aspect, near, far){
         0, f, 0, 0,
         0, 0, (near + far) * rangeInv, -1,
         0, 0, near * far * rangeInv * 2, 0
+    ];
+};
+const makeView = function(lookAt, camera, up){
+    let zaxis = glm.vec3.create();
+    glm.vec3.scale(zaxis,lookAt,-1);
+    //glm.vec3.sub(zaxis,lookAt,camera);
+    glm.vec3.normalize(zaxis,zaxis);
+    let xaxis = glm.vec3.create();
+    glm.vec3.cross(xaxis,up,zaxis);
+    glm.vec3.normalize(xaxis,xaxis);
+    let yaxis = glm.vec3.create();
+    glm.vec3.cross(yaxis,zaxis,xaxis);
+
+    return [
+        xaxis[0],  yaxis[0],  zaxis[0],  0,
+        xaxis[1],  yaxis[1],  zaxis[1],  0,
+        xaxis[2],  yaxis[2],  zaxis[2],  0,
+        -glm.vec3.dot(xaxis,camera), -glm.vec3.dot(yaxis,camera), -glm.vec3.dot(zaxis,camera), 1
     ];
 };
 const makeTranslation = function(tx, ty, tz){
@@ -162,9 +182,9 @@ export default class WebGL {
         self.textures[name] = tex;
     }
 
-    renderStart(camera){
+    renderStart(camera,lookAt,up){
         const self = this._private;
-        initScene.call(this,camera);
+        initScene.call(this,camera,lookAt,up);
         if (self.showFPS)
             self.fps++;
     }

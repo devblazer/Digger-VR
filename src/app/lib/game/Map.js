@@ -1,13 +1,14 @@
 import Sector from './Sector.js';
 import Plot from './Plot.js';
 
-const SECTOR_CACHE_LIMIT = 600;
+const SECTOR_CACHE_LIMIT = 125;
 
 export default class Map {
     constructor(size=64) {
         size -= size%8;
         this._private = {
             size,
+            buffs:{},
             sectors:[],
             plots:[],
             sectorCache:[]
@@ -102,17 +103,18 @@ export default class Map {
         return c;
     }
 
-    getForRender(){
+    getForRender(camera,range=19){
         const p = this._private;
 
         const cnt = {};
         const arrs = {};
-        const buffs = {};
+        const buffs = p.buffs;
 
-        for (let x = 0; x < p.size / 8; x++) {
-            for (let y = 0; y < p.size / 8; y++) {
-                for (let z = 0; z < p.size / 8; z++) {
-                    let rend = this.getSector(x*8,y*8,z*8).getForRender();
+        for (let x = Math.max(0,Math.floor((camera[0]-range)/8)); x < Math.min(p.size/8,Math.floor((camera[0]+range)/8)+1); x++) {
+            for (let y = Math.max(0,Math.floor((camera[1]-range)/8)); y < Math.min(p.size/8,Math.floor((camera[1]+range)/8)+1); y++) {
+                for (let z = Math.max(0,Math.floor((camera[2]-range)/8)); z < Math.min(p.size/8,Math.floor((camera[2]+range)/8)+1); z++) {
+                    if (Math.sqrt(Math.pow(camera[0]-((x*8)+4),2) + Math.pow(camera[1]-((y*8)+4),2) + Math.pow(camera[2]-((z*8)+4),2))<=range) {
+                    let rend = this.getSector(x*8,y*8,z*8).getForRender(this);
                     for (let t in rend.tiles) {
                         if (rend.tiles.hasOwnProperty(t)) {
                             if (!cnt[t]) {
@@ -123,15 +125,19 @@ export default class Map {
                             cnt[t]+=rend.tiles[t].faces.buffer.byteLength;
                         }
                     }
-                }
+                }}
             }
         }
         for (let t in cnt) {
             if (cnt.hasOwnProperty(t)) {
-                buffs[t] = new Float32Array(cnt[t]);
+                if (!buffs[t])
+                    buffs[t] = {buf:new Float32Array(2000000),count:cnt[t]};
+                else
+                    buffs[t].count = cnt[t];
+
                 let pos = 0;
                 arrs[t].forEach(u8v=>{
-                    buffs[t].set(u8v,pos);
+                    buffs[t].buf.set(u8v, pos);
                     pos+= u8v.buffer.byteLength;
                 });
             }

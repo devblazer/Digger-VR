@@ -2,6 +2,32 @@ import Cube from './Cube.js';
 import Plot from './Plot.js';
 import Tile from './../render/Tile.js';
 
+const CHECK_FACE = [
+    [-1,0,0,0, 0,0,0,1, 0,0,0,1],
+    [0,0,0,1, -1,0,0,0, 0,0,0,1],
+    [0,0,0,1, 0,0,0,1, -1,0,0,0],
+    [0,1,1,1, 0,0,0,1, 0,0,0,1],
+    [0,0,0,1, 0,1,1,1, 0,0,0,1],
+    [0,0,0,1, 0,0,0,1, 0,1,1,1]
+];
+
+const checkFace = (x,y,z,s,dir,map)=>{
+    const f = CHECK_FACE[dir];
+    let covered = true;
+    let didSearch = false;
+
+    for (let tx=Math.max(0,x+f[0]+(s*f[1])); tx<Math.min(map.getSize(),x+f[2]+(s*f[3])); tx++)
+        for (let ty=Math.max(0,y+f[4]+(s*f[5])); ty<Math.min(map.getSize(),y+f[6]+(s*f[7])); ty++) {
+            for (let tz=Math.max(0,z+f[8]+(s*f[9])); tz<Math.min(map.getSize(),z+f[10]+(s*f[11])); tz++) {
+                if (Math.floor(x/8)==Math.floor(tx/8) && Math.floor(y/8)==Math.floor(ty/8) &&Math.floor(z/8)==Math.floor(tz/8)) {
+                    didSearch = true;
+                    covered &= map.get(tx, ty, tz);
+                }
+            }
+        }
+    return !covered || !didSearch;
+};
+
 export default class Sector extends Cube {
     constructor(x=0,y=0,z=0){
         super();
@@ -57,14 +83,15 @@ export default class Sector extends Cube {
         plot.readInto(this);
     }
 
-    getForRender(){
+    getForRender(map){
         const p = this._private;
         if (p.needsRender){
-            console.log('render')
             p.needsRender = false;
 
             p.renderData = {tiles:[]};
+            let ti = (new Date()).getTime();
             this.optimise();
+            window.sum1 += ((new Date()).getTime()-ti);
 
             for (let type in p.optimisedData)
                 if (p.optimisedData.hasOwnProperty(type)) {
@@ -77,15 +104,26 @@ export default class Sector extends Cube {
                             if (!p.renderData.tiles[t])
                                 p.renderData.tiles[t] = {type: t, faces: []};
                             let size = Math.pow(2, tile[3]);
-                            Tile.addFace((tile[0]*size)+p.x, (tile[1]*size)+p.y, (tile[2]*size)+p.z, size, f, p.renderData.tiles[t].faces);
+                            ti = (new Date()).getTime();
+                            let res = checkFace((tile[0]*size)+p.x, (tile[1]*size)+p.y, (tile[2]*size)+p.z, size, f,map);
+                            window.sum2 += ((new Date()).getTime()-ti);
+
+                            if (res) {
+                                ti = (new Date()).getTime();
+                                Tile.addFace((tile[0] * size) + p.x, (tile[1] * size) + p.y, (tile[2] * size) + p.z, size, f, p.renderData.tiles[t].faces);
+                                window.sum3 += ((new Date()).getTime()-ti);
+                            }
                         }
                     });
                 }
+            ti = (new Date()).getTime();
             for (let type in p.renderData.tiles) {
                 if (p.renderData.tiles.hasOwnProperty(type)) {
                     p.renderData.tiles[type].faces = new Float32Array(p.renderData.tiles[type].faces);
                 }
             }
+            window.sum4 += ((new Date()).getTime()-ti);
+            console.log(Math.floor(window.sum1/1000),Math.floor(window.sum2/1000),Math.floor(window.sum3/1000),Math.floor(window.sum4/1000));
         }
         return p.renderData;
     }

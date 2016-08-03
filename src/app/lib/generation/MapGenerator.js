@@ -13,24 +13,24 @@ export default class MapGenerator {
         };
     }
 
-    autoGenerate(skyrows=8){
+    autoGenerate(skyRows=8){
         const p = this._private;
         const startTime = (new Date()).getTime();
 
-        this.continent(skyrows);
-        this.minerals(skyrows);
+        this.continent(skyRows);
+        this.minerals(skyRows);
 
         let tunnels;
         if (p.size<64)
-            tunnels = 1;
+            tunnels = 6;
         else if (p.size<128)
-            tunnels = 2;
+            tunnels = 60;
         else if (p.size<256)
-            tunnels = 25;
+            tunnels = 600;
         else if (p.size<512)
-            tunnels = 400;
+            tunnels = 6000;
         else
-            tunnels = 5000;
+            tunnels = 60000;
 
         let lastP = -1;
 
@@ -39,7 +39,7 @@ export default class MapGenerator {
             if (newP != lastP)
                 console.log('Gen Cave: '+newP+'%');
             lastP = newP;
-            this.tunnelNetwork(null,null,skyrows+2);
+            this.tunnelNetwork(null,skyRows+2,null,0,TILE_INDEX_EMPTY);
         }
         const buildTime = ((new Date()).getTime()-startTime)/1000;
         const ret = this.report();
@@ -92,24 +92,24 @@ export default class MapGenerator {
     continent(skyRows=8){
         const p = this._private;
 
-        p.map.fill(0,0,p.size-skyrows,TILE_INDEX_EMPTY,p.size,p.size,skyRows);
-        p.map.fill(0,0,p.size-skyRows-1,TILE_INDEX_GRASS,p.size,p.size,1);
-        p.map.fill(0,0,0,TILE_INDEX_DIRT,p.size,p.size,p.size-skyRows-1);
+        p.map.fill(0,p.size-skyRows,0,TILE_INDEX_EMPTY,p.size,skyRows,p.size);
+        p.map.fill(0,p.size-skyRows-1,0,TILE_INDEX_GRASS,p.size,1,p.size);
+        p.map.fill(0,0,0,TILE_INDEX_DIRT,p.size,p.size-skyRows-1,p.size);
     }
 
-    minerals(skyrows=8,type=3,ratio=0.5) {
+    minerals(skyRows=8,type=3,ratio=0.5) {
         const p = this._private;
         let tiles = Math.pow(p.size,3)*ratio;
 
         let lastCount = -1;
-        for (let n=0;n<tiles/200;n++) {
-            let newCount = Math.floor(n/(tiles/200)*100);
+        for (let n=0;n<tiles/10;n++) {
+            let newCount = Math.floor(n/(tiles/10)*100);
             if (newCount != lastCount)
                 console.log('Minerals type '+type+': '+newCount+'%');
             lastCount = newCount;
-            let z = Math.floor(Math.random() * (p.size - skyrows-2));
-            let s = ((Math.random() * 6) + 2) * (z / (p.size) * skyrows);
-            this.splatter(Math.floor(Math.random() * p.size), Math.floor(Math.random() * p.size), p.size-(z + skyrows+2)-1, s/8,s/6,type);
+            let y = Math.floor(Math.random() * (p.size - skyRows));
+            let s = (((Math.random() * 3) + 0.5) * (y / (p.size) * skyRows));
+            this.splatter(Math.floor(Math.random() * (p.size+10))-5, p.size-(y + skyRows+2)-1, Math.floor(Math.random() * (p.size+10))-5, (s/8)+0.6,(s/6)+0.6,type);
         }
     }
 
@@ -126,7 +126,7 @@ export default class MapGenerator {
 
     splatter(x,y,z,r,spots,val){
         let tiles = Math.pow(r*2,3)/2;
-        let spotR = Math.cbrt(tiles/spots*2)/2;
+        let spotR = Math.cbrt(tiles/spots*2)/3;
 
         for (let c=0;c<spots*2;c++){
             let v = Util.randomVector3();
@@ -140,13 +140,13 @@ export default class MapGenerator {
         return (x>=0&&x<p.size && y>=0&&y<p.size && z>=0&&z<p.size);
     }
 
-    tunnelNetwork(x=null,y=null,z=10,tunnelCount=0) {
+    tunnelNetwork(x=null,y=10,z=null,tunnelCount=0,val=TILE_INDEX_EMPTY) {
         const p = this._private;
 
-        tunnelCount = tunnelCount || (Math.random()*40)+5;
+        tunnelCount = tunnelCount || (Math.random()*15)+2;
+        y = x===null&&z===null?(Math.random()*(p.size-y)):y;
         x = x===null?(Math.random()*p.size):x;
-        y = y===null?(Math.random()*p.size):y;
-        z = x===null&&y===null?(64-(Math.random()*(p.size-z))-z):z;
+        z = z===null?(Math.random()*p.size):z;
 
         const activeTunnels = [[x,y,z]];
         for (let c=0;c<tunnelCount;c++) {
@@ -156,12 +156,12 @@ export default class MapGenerator {
             let nvs = this.tunnelBranch(sv[0],sv[1],sv[2]);
             nvs.forEach(tunnel=>{
                 c++;
-                activeTunnels.push(this.tunnel(tunnel[0],tunnel[1],tunnel[2]));
+                activeTunnels.push(this.tunnel(tunnel[0],tunnel[1],tunnel[2],0,0,val));
             });
         }
     }
 
-    tunnelBranch(x,y,z,branches=0,branchFactor=3){
+    tunnelBranch(x,y,z,branches=0,branchFactor=30){
         if (!branches){
             branches = 1;
             while (Math.random()<=1/branchFactor)
@@ -174,15 +174,16 @@ export default class MapGenerator {
         return ret;
     }
 
-    tunnel(x,y,z,r=0,l=0){
-        r = r || (Math.random()*6)+2;
+    tunnel(x,y,z,r=0,l=0,val=TILE_INDEX_EMPTY){
+        r = r || (Math.random()*4)+0.5;
         l = l || (Math.random()*20)+5;
-        const u = l/r*2;
+        const u = l/r*3;
         const v = Util.randomVector3();
+        v[1] *= Math.random();
 
         for (let n=0;n<u;n++){
             let d = l/u*n;
-            this.splatter(x+(v[0]*d),y+(v[1]*d),z+(v[2]*d),r,3,TILE_INDEX_EMPTY);
+            this.splatter(x+(v[0]*d),y+(v[1]*d),z+(v[2]*d),r,3,val);
         }
 
         return [x+(v[0]*l),y+(v[1]*l),z+(v[2]*l)];

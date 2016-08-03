@@ -1,50 +1,50 @@
 const BASE_DATA = [
     // x-
-    0, 0, 0, -1, 0, 0, 0, 0,
-    0, 0, 1, -1, 0, 0, 1, 0,
-    0, 1, 0, -1, 0, 0, 0, 1,
-    0, 1, 0, -1, 0, 0, 0, 1,
-    0, 0, 1, -1, 0, 0, 1, 0,
-    0, 1, 1, -1, 0, 0, 1, 1,
+    0, 0, 0, 0,
+    0, 0, 1, 1,
+    0, 1, 0, 2,
+    0, 1, 0, 3,
+    0, 0, 1, 4,
+    0, 1, 1, 5,
     // y-
-    0, 0, 0, 0, -1, 0, 0, 0,
-    1, 0, 0, 0, -1, 0, 1, 0,
-    0, 0, 1, 0, -1, 0, 0, 1,
-    0, 0, 1, 0, -1, 0, 0, 1,
-    1, 0, 0, 0, -1, 0, 1, 0,
-    1, 0, 1, 0, -1, 0, 1, 1,
+    0, 0, 0, 6,
+    1, 0, 0, 7,
+    0, 0, 1, 8,
+    0, 0, 1, 9,
+    1, 0, 0, 10,
+    1, 0, 1, 11,
     // z-
-    1, 0, 0, 0, 0, -1, 0, 0,
-    0, 0, 0, 0, 0, -1, 1, 0,
-    1, 1, 0, 0, 0, -1, 0, 1,
-    1, 1, 0, 0, 0, -1, 0, 1,
-    0, 0, 0, 0, 0, -1, 1, 0,
-    0, 1, 0, 0, 0, -1, 1, 1,
+    1, 0, 0, 12,
+    0, 0, 0, 13,
+    1, 1, 0, 14,
+    1, 1, 0, 15,
+    0, 0, 0, 16,
+    0, 1, 0, 17,
     // x+
-    1, 0, 1, 1, 0, 0, 0, 0,
-    1, 0, 0, 1, 0, 0, 1, 0,
-    1, 1, 1, 1, 0, 0, 0, 1,
-    1, 1, 1, 1, 0, 0, 0, 1,
-    1, 0, 0, 1, 0, 0, 1, 0,
-    1, 1, 0, 1, 0, 0, 1, 1,
+    1, 0, 1, 18,
+    1, 0, 0, 19,
+    1, 1, 1, 20,
+    1, 1, 1, 21,
+    1, 0, 0, 22,
+    1, 1, 0, 23,
     // y+
-    1, 1, 0, 0, 1, 0, 0, 0,
-    0, 1, 0, 0, 1, 0, 1, 0,
-    1, 1, 1, 0, 1, 0, 0, 1,
-    1, 1, 1, 0, 1, 0, 0, 1,
-    0, 1, 0, 0, 1, 0, 1, 0,
-    0, 1, 1, 0, 1, 0, 1, 1,
+    1, 1, 0, 24,
+    0, 1, 0, 25,
+    1, 1, 1, 26,
+    1, 1, 1, 27,
+    0, 1, 0, 28,
+    0, 1, 1, 29,
     // z+
-    0, 0, 1, 0, 0, 1, 0, 0,
-    1, 0, 1, 0, 0, 1, 1, 0,
-    0, 1, 1, 0, 0, 1, 0, 1,
-    0, 1, 1, 0, 0, 1, 0, 1,
-    1, 0, 1, 0, 0, 1, 1, 0,
-    1, 1, 1, 0, 0, 1, 1, 1
+    0, 0, 1, 30,
+    1, 0, 1, 31,
+    0, 1, 1, 32,
+    0, 1, 1, 33,
+    1, 0, 1, 34,
+    1, 1, 1, 35
 ];
 
-const POINT_SIZE = 8;
-const FACE_SIZE = 48;
+const POINT_SIZE = 4;
+const FACE_SIZE = 24;
 
 const FACE2SIDE = [1,2,1,1,0,1];
 const TILES = ['empty','dirt','grass','stone'];
@@ -63,11 +63,12 @@ export default class Tile {
             buffer.push((BASE_DATA[offset + (POINT_SIZE * n)] * size) + x);
             buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 1] * size) + y);
             buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 2] * size) + z);
-            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 3]);
-            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 4]);
+            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 3]*5);
+            buffer.push(size);
+/*            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 4]);
             buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 5]);
             buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 6] * size);
-            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 7] * size);
+            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 7] * size);*/
         }
     }
 
