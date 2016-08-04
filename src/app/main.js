@@ -19,10 +19,10 @@ function run() {
     const webGL = new WebGL(true);
     const VIEW_DISTANCE = 17;
 
-    webGL.createTexture('grass','/textures/grass.png');
-    webGL.createTexture('grassEdge','/textures/grassEdge.png');
-    webGL.createTexture('dirt','/textures/dirt.png');
-    webGL.createTexture('stone','/textures/stone.png');
+    webGL.createTexture('grass','textures/grass.png');
+    webGL.createTexture('grassEdge','textures/grassEdge.png');
+    webGL.createTexture('dirt','textures/dirt.png');
+    webGL.createTexture('stone','textures/stone.png');
 
     webGL.createShader('tile', TileVert, TileFrag, [
         {name: 'a_position', size: 4, count: 4, type: 'FLOAT'},
@@ -80,7 +80,7 @@ function run() {
 
     var lastTime = (new Date()).getTime();
 
-    const mapSize = 512;
+    const mapSize = 64;
     const camera = glm.vec3.fromValues(mapSize/2,mapSize-4,mapSize/2);
 
     const cameraFace = glm.vec3.fromValues(0,0,-1);

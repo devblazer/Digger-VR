@@ -3,7 +3,7 @@ var path = require('path');
 var webpackConfig = require("./webpack.config.js");
 var nodeModulesPath = path.resolve(__dirname, 'node_modules');
 var buildPath = path.resolve(__dirname, 'public', 'build');
-var mainPath = path.resolve(__dirname, 'app', 'main.js');
+var mainPath = path.resolve(__dirname, 'src','app', 'main.js');
 
 
 
