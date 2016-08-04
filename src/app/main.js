@@ -2,6 +2,7 @@ require('./main.css');
 import Util from './lib/Util.js';
 import WebGL from './lib/render/WebGL.js';
 import Input from './lib/game/Input.js';
+import Orientation from './lib/game/Orientation.js';
 import Map from './lib/game/Map.js';
 import MapGenerator from './lib/generation/MapGenerator.js';
 import Tile from './lib/render/Tile.js';
@@ -97,6 +98,8 @@ function run() {
     const cameraForward = glm.vec3.create();
     const cameraRight = glm.vec3.create();
 
+    const orient = new Orientation();
+
     let faces;
     function render() {
         var newTime = (new Date()).getTime();
@@ -155,6 +158,14 @@ function run() {
                 glm.vec3.normalize(cameraFace, cameraFace);
             }
         }
+
+        glm.vec3.cross(cameraRight,cameraFace,cameraUp);
+        cameraRight[1] = 0;
+        glm.vec3.normalize(cameraRight,cameraRight);
+        glm.vec3.cross(cameraForward,cameraRight,cameraUp);
+
+        orient.update(cameraFace);
+
         glm.vec3.cross(cameraRight,cameraFace,cameraUp);
         cameraRight[1] = 0;
         glm.vec3.normalize(cameraRight,cameraRight);
@@ -172,6 +183,11 @@ function run() {
         t = glm.vec3.create();
         glm.vec3.scale(t,cameraForward,actions.moveZ);
         glm.vec3.add(camera,camera,t);
+
+        glm.vec3.cross(cameraRight,cameraFace,cameraUp);
+        cameraRight[1] = 0;
+        glm.vec3.normalize(cameraRight,cameraRight);
+        glm.vec3.cross(cameraForward,cameraRight,cameraUp);
 
         //storage.step(delta);
     }
