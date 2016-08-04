@@ -19,9 +19,9 @@ const initGl = function(){
     self.gl.cullFace(self.gl.BACK);
 };
 
-const initScene = function(camera,lookAt,up){
+const initScene = function(camera,lookAt,up,clearColor=[0.0,0.0,0.0]){
     const self = this._private;
-    self.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    self.gl.clearColor(clearColor[0],clearColor[1],clearColor[2], 1.0);
     //self.mvMatrix = makeTranslation(-camera[0], -camera[1], -camera[2]);
     self.mvMatrix = makeView(lookAt,camera,up);
     self.pMatrix = makePerspective(Util.deg2Rad(60),self.canvas.clientWidth / self.canvas.clientHeight,1,10000)
@@ -75,7 +75,7 @@ const initBuffer = function(glELEMENT_ARRAY_BUFFER, data){
     return buf;
 };
 
-const initBuffers = function(shaderName, vtx, idx=null, textures=[]){
+const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={}){
     const self = this._private;
     var shader = self.shaders[shaderName];
     var shaderProgram = shader.shader;
@@ -99,7 +99,7 @@ const initBuffers = function(shaderName, vtx, idx=null, textures=[]){
         cumulative+=(attr.size*attr.count);
     });
     shader.uniforms.forEach(uniform=>{
-        self.gl['uniform'+uniform.type](shaderProgram[uniform.name+'Uniform'],uniform.value);
+        self.gl['uniform'+uniform.type](shaderProgram[uniform.name+'Uniform'],typeof uniforms[uniform.name]=='undefined' ? uniform.value : uniforms[uniform.name]);
     });
 };
 
@@ -182,17 +182,17 @@ export default class WebGL {
         self.textures[name] = tex;
     }
 
-    renderStart(camera,lookAt,up){
+    renderStart(camera,lookAt,up,clearColor=[0.0,0.0,0.0]){
         const self = this._private;
-        initScene.call(this,camera,lookAt,up);
+        initScene.call(this,camera,lookAt,up,clearColor);
         if (self.showFPS)
             self.fps++;
     }
 
-    render(shader, primitiveType, vertexBuffer, primitiveCount, offset=0,textures=[]){
+    render(shader, primitiveType, vertexBuffer, primitiveCount, offset=0,textures=[],uniforms={}){
         const self = this._private;
 
-        initBuffers.call(this,shader,vertexBuffer,null,textures);
+        initBuffers.call(this,shader,vertexBuffer,null,textures,uniforms);
         self.gl.drawArrays(self.gl[primitiveType],offset, primitiveCount);
         unbindBuffers.call(this);
     }

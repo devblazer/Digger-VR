@@ -24,14 +24,23 @@ function run() {
     webGL.createTexture('dirt','textures/dirt.png');
     webGL.createTexture('stone','textures/stone.png');
 
+    const fog_sky_color = [0.3,0.65,1.0];
+    const fog_underground_color = [0.0,0.0,0.0];
+
     webGL.createShader('tile', TileVert, TileFrag, [
         {name: 'a_position', size: 4, count: 4, type: 'FLOAT'},
-        {name: 'a_size', size: 4, count: 1, type: 'FLOAT'}/*,
-        {name: 'a_uv', size: 4, count: 2, type: 'FLOAT'}*/
+        {name: 'a_size', size: 4, count: 1, type: 'FLOAT'}
     ],
     [
-        {name: 'u_ambient',type:'1f',value:0.3},
-        {name: 'u_directional',type:'3fv',value:[-0.3,-0.5,-0.2]},
+        {name: 'u_sky_light',type:'3fv',value:[1.0,1.0,1.0]},
+        {name: 'u_height',type:'1f',value:null},
+        {name: 'u_camera',type:'3fv',value:null},
+        {name: 'u_camera_face',type:'3fv',value:null},
+        {name: 'u_self_light',type:'3fv',value:[1.0,1.0,1.0]},
+        {name: 'u_sun_light_face',type:'3fv',value:[-0.3,-0.5,-0.2]},
+        {name: 'u_fog_sky_color',type:'3fv',value:fog_sky_color},
+        {name: 'u_fog_underground_color',type:'3fv',value:fog_underground_color},
+        {name: 'u_sun_light_color',type:'3fv',value:[1.0,1.0,1.0]},
         {name: 'u_normuv',type:'1fv',value:[
             // x-
             -1, 0, 0, 0, 0,
@@ -80,8 +89,8 @@ function run() {
 
     var lastTime = (new Date()).getTime();
 
-    const mapSize = 64;
-    const camera = glm.vec3.fromValues(mapSize/2,mapSize-4,mapSize/2);
+    const mapSize = 32;
+    const camera = glm.vec3.fromValues(mapSize/2,mapSize-15,mapSize/2);
 
     const cameraFace = glm.vec3.fromValues(0,0,-1);
     const cameraUp = glm.vec3.fromValues(0,1,0);
@@ -96,7 +105,14 @@ function run() {
 
         step(delta);
 
-        webGL.renderStart(camera,cameraFace,cameraUp);
+        const depthRatio = Math.min(1,Math.max(0,(mapSize-camera[1]-8)/10));
+        const fogColor = [
+            (fog_sky_color[0]*(1-depthRatio)) + (fog_underground_color[0]*depthRatio),
+            (fog_sky_color[1]*(1-depthRatio)) + (fog_underground_color[1]*depthRatio),
+            (fog_sky_color[2]*(1-depthRatio)) + (fog_underground_color[2]*depthRatio)
+        ];
+
+        webGL.renderStart(camera,cameraFace,cameraUp,fogColor);
 
         let tiles;
         let tileGroups = map.getForRender(camera,cameraFace,VIEW_DISTANCE+5);
@@ -106,7 +122,7 @@ function run() {
             if (tileGroups.hasOwnProperty(p)) {
                 tiles = tileGroups[p];
                 faces += (tiles.count/30);
-                webGL.render('tile', 'TRIANGLES', tiles.buf, tiles.count / 5,0,[p]);
+                webGL.render('tile', 'TRIANGLES', tiles.buf, tiles.count / 5,0,[p],{u_camera_face:cameraFace,u_camera:camera,u_height:depthRatio});
             }
 
         requestAnimationFrame(render);
