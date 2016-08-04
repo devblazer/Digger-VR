@@ -22,15 +22,15 @@ export default class MapGenerator {
 
         let tunnels;
         if (p.size<64)
-            tunnels = 6;
+            tunnels = 5;
         else if (p.size<128)
             tunnels = 25;
         else if (p.size<256)
-            tunnels = 200;
+            tunnels = 150;
         else if (p.size<512)
             tunnels = 1000;
         else
-            tunnels = 5000;
+            tunnels = 6000;
 
         let lastP = -1;
 

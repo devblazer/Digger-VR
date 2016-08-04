@@ -80,7 +80,7 @@ function run() {
 
     var lastTime = (new Date()).getTime();
 
-    const mapSize = 64;
+    const mapSize = 512;
     const camera = glm.vec3.fromValues(mapSize/2,mapSize-4,mapSize/2);
 
     const cameraFace = glm.vec3.fromValues(0,0,-1);
