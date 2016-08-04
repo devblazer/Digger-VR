@@ -90,7 +90,7 @@ function run() {
     var lastTime = (new Date()).getTime();
 
     const mapSize = 32;
-    const camera = glm.vec3.fromValues(mapSize/2,mapSize-15,mapSize/2);
+    const camera = glm.vec3.fromValues(mapSize/2,mapSize-5,mapSize/2);
 
     const cameraFace = glm.vec3.fromValues(0,0,-1);
     const cameraUp = glm.vec3.fromValues(0,1,0);
@@ -141,17 +141,16 @@ function run() {
 
     function step(delta) {
 
-        // mouse
-        let mm = input.getMouseMoved();
+        let actions = input.getAllActions(delta);
 
-        if (mm[0])
-            glm.vec3.rotateY(cameraFace,cameraFace,glm.vec3.fromValues(0,0,0),Util.deg2Rad(-mm[0])/3);
-        if (mm[1]) {
-            if ((cameraFace[1]>-0.99 || mm[1] < 0) && (cameraFace[1]<0.99 || mm[1] > 0)) {
+        if (actions.rotateY)
+            glm.vec3.rotateY(cameraFace,cameraFace,glm.vec3.fromValues(0,0,0),Util.deg2Rad(-actions.rotateY)/3);
+        if (actions.rotateX) {
+            if ((cameraFace[1]>-0.99 || actions.rotateX < 0) && (cameraFace[1]<0.99 || actions.rotateX > 0)) {
                 let q = glm.quat.create();
                 let r = glm.vec3.create();
                 glm.vec3.cross(r, cameraFace, cameraUp);
-                glm.quat.setAxisAngle(q, r, -mm[1] / 180);
+                glm.quat.setAxisAngle(q, r, -actions.rotateX / 60);
                 glm.vec3.transformQuat(cameraFace, cameraFace, q);
                 glm.vec3.normalize(cameraFace, cameraFace);
             }
@@ -161,24 +160,17 @@ function run() {
         glm.vec3.normalize(cameraRight,cameraRight);
         glm.vec3.cross(cameraForward,cameraRight,cameraUp);
 
-
-        // keyboard
-        let speed = 3;
         let t;
-
-        let x = input.getAxisState(0);
         t = glm.vec3.create();
-        glm.vec3.scale(t,cameraRight,delta*x*speed);
+        glm.vec3.scale(t,cameraRight,actions.moveX);
         glm.vec3.add(camera,camera,t);
 
-        let y = input.getAxisState(1);
         t = glm.vec3.create();
-        glm.vec3.scale(t,cameraUp,delta*y*speed);
+        glm.vec3.scale(t,cameraUp,actions.moveY);
         glm.vec3.add(camera,camera,t);
 
-        let z = input.getAxisState(2);
         t = glm.vec3.create();
-        glm.vec3.scale(t,cameraForward,delta*z*speed);
+        glm.vec3.scale(t,cameraForward,actions.moveZ);
         glm.vec3.add(camera,camera,t);
 
         //storage.step(delta);
