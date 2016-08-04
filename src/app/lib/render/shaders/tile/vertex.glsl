@@ -20,7 +20,7 @@ varying vec3 v_computed_light;
 varying vec3 v_fog_color;
 varying float v_fog_ratio;
 
-const float reflectivity = 1.5;
+const float reflectivity = 0.5;
 const float max_self_light_distance = 16.0;
 const float sky_fog_dist = 16.0;
 const float underground_fog_dist = 16.0;
@@ -41,9 +41,9 @@ void main(void) {
     float self_light_offset = max(0.0,dot(v_normal,-normalize(u_camera_face)));
 
     v_computed_light =
-        (sun_light_offset*sun_intensity*u_sun_light_color)
-        +(sky_intensity*u_sky_light)
-        +(self_intensity*self_light_offset*(u_self_light*reflectivity)*(1.0-min(1.0,distance(u_camera,a_position.xyz)/max_self_light_distance)));
+            (sun_light_offset*sun_intensity*u_sun_light_color)
+            +(sky_intensity*u_sky_light)
+            +(self_intensity*(self_light_offset+reflectivity)*(1.0-min(1.0,distance(u_camera,a_position.xyz)/max_self_light_distance)));
 
     gl_Position = u_pMatrix * u_mvMatrix * vec4(a_position.xyz, 1.0 );
 }
