@@ -6,6 +6,10 @@ const getShader = function( type, shaderImport) {
     var shader = this._private.gl.createShader(type);
     this._private.gl.shaderSource(shader, shaderImport);
     this._private.gl.compileShader(shader);
+    if (!this._private.gl.getShaderParameter(shader, this._private.gl.COMPILE_STATUS)) {
+        console.log('shader error');
+        console.log(this._private.gl.getShaderInfoLog(shader));
+    }
     return shader;
 };
 
@@ -17,17 +21,31 @@ const initGl = function(){
     //self.gl.blendFunc(self.gl.SRC_ALPHA, self.gl.ONE);
     self.gl.enable(self.gl.CULL_FACE);
     self.gl.cullFace(self.gl.BACK);
+
+    $(window).on('resize',function(){
+        self.canvas.width = self.canvas.clientWidth;
+        self.canvas.height = self.canvas.clientHeight;
+    });
 };
 
-const initScene = function(camera,lookAt,up,clearColor=[0.0,0.0,0.0]){
+const initScene = function(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0){
     const self = this._private;
+    let vpX=0,vpW=self.canvas.width/2,vpCW = self.canvas.clientWidth/2;
+    if (mode==2)
+        vpX = self.canvas.width/2;
+    if (mode==0) {
+        vpW = self.canvas.width;
+        vpCW = self.canvas.clientWidth;
+    }
+    self.gl.viewport(vpX,0,vpW,self.canvas.height);
     self.gl.clearColor(clearColor[0],clearColor[1],clearColor[2], 1.0);
     //self.mvMatrix = makeTranslation(-camera[0], -camera[1], -camera[2]);
     self.mvMatrix = makeView(lookAt,camera,up);
-    self.pMatrix = makePerspective(Util.deg2Rad(60),self.canvas.clientWidth / self.canvas.clientHeight,1,10000)
+    self.pMatrix = makePerspective(Util.deg2Rad(60),vpCW / self.canvas.clientHeight,1,10000)
 
     self.gl.enable(self.gl.DEPTH_TEST);
-    self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
+    if (mode<2)
+        self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT);
 };
 
 const makePerspective = function(fieldOfViewInRadians, aspect, near, far){
@@ -77,10 +95,15 @@ const initBuffer = function(glELEMENT_ARRAY_BUFFER, data){
 
 const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={}){
     const self = this._private;
-    var shader = self.shaders[shaderName];
+    if (typeof shaderName=='string') {
+        var shader = self.shaders[shaderName];
+    }
+    else
+        var shader = shaderName;
     var shaderProgram = shader.shader;
 
-    self.gl.useProgram(shaderProgram);
+    if (typeof shaderName=='string')
+        self.gl.useProgram(shaderProgram);
     self.gl.uniformMatrix4fv(shaderProgram.pMUniform, false, new Float32Array(self.pMatrix));
     self.gl.uniformMatrix4fv(shaderProgram.mvMUniform, false, new Float32Array(self.mvMatrix));
 
@@ -128,7 +151,7 @@ export default class WebGL {
         if (showFPS) {
             $('body').prepend('<div id="fps" style="position:absolute;width:50px;padding:8px;text-align:center;background-color:rgba(128,128,128,0.5);border:#888 1px solid;font-weight:700;color:#fff;"></div>');
             window.setInterval((function(){
-                document.getElementById('fps').innerHTML = this._private.fps;
+                document.getElementById('fps').innerHTML = Math.ceil(this._private.fps/2);
                 this._private.fps = 0;
             }).bind(this),1000);
         }
@@ -182,9 +205,9 @@ export default class WebGL {
         self.textures[name] = tex;
     }
 
-    renderStart(camera,lookAt,up,clearColor=[0.0,0.0,0.0]){
+    renderStart(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0){
         const self = this._private;
-        initScene.call(this,camera,lookAt,up,clearColor);
+        initScene.call(this,camera,lookAt,up,clearColor,mode);
         if (self.showFPS)
             self.fps++;
     }

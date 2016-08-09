@@ -112,7 +112,7 @@ export default class Sector extends Cube {
                 }
             for (let type in p.renderData.tiles) {
                 if (p.renderData.tiles.hasOwnProperty(type)) {
-                    p.renderData.tiles[type].faces = new Float32Array(p.renderData.tiles[type].faces);
+                    p.renderData.tiles[type].faces = new Uint8Array(p.renderData.tiles[type].faces);
                 }
             }
         }

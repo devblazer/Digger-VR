@@ -6,10 +6,10 @@ import Util from './../Util.js';
 const SECTOR_CACHE_LIMIT = 200;
 const TYPE_BUFFER_SIZE = {
     empty: 0,
-    dirt:2000000,
-    grass:500000,
-    grassEdge:1000000,
-    stone:1500000
+    dirt:1000000,
+    grass:250000,
+    grassEdge:500000,
+    stone:750000
 };
 
 export default class Map {
@@ -18,6 +18,7 @@ export default class Map {
         this._private = {
             size,
             buffs:{},
+            renderBuff:new Uint8Array(1024*1024),
             sectors:[],
             plots:[],
             sectorCache:[]
@@ -112,22 +113,22 @@ export default class Map {
         return c;
     }
 
-    getForRender(camera,cameraFace,range=22){
+    getForRender(camera,cameraFace,range=22,vertexData,vertexIndexTracker){
         const p = this._private;
 
         const cnt = {};
         const arrs = {};
         const buffs = p.buffs;
 
-        for (let x = Math.max(0,Math.floor((camera[0]-range)/8)); x < Math.min(p.size/8,Math.floor((camera[0]+range)/8)+1); x++) {
-            for (let y = Math.max(0,Math.floor((camera[1]-range)/8)); y < Math.min(p.size/8,Math.floor((camera[1]+range)/8)+1); y++) {
-                for (let z = Math.max(0,Math.floor((camera[2]-range)/8)); z < Math.min(p.size/8,Math.floor((camera[2]+range)/8)+1); z++) {
-                    let dist = Math.sqrt(Math.pow(camera[0]-((x*8)+4),2) + Math.pow(camera[1]-((y*8)+4),2) + Math.pow(camera[2]-((z*8)+4),2));
-                    if (dist<=range) {
-                        const tvec = glm.vec3.fromValues((x*8)+4-camera[0],(y*8)+4-camera[1],(z*8)+4-camera[2]);
-                        glm.vec3.normalize(tvec,tvec);
-                        let adiff = Util.rad2Deg(Math.acos(glm.vec3.dot(tvec,cameraFace)));
-                        if ((dist < range-2 && adiff<180-(dist*(120/(range-2)))) || adiff<60) {
+        for (let x = Math.max(0, Math.floor((camera[0] - range) / 8)); x < Math.min(p.size / 8, Math.floor((camera[0] + range) / 8) + 1); x++) {
+            for (let y = Math.max(0, Math.floor((camera[1] - range) / 8)); y < Math.min(p.size / 8, Math.floor((camera[1] + range) / 8) + 1); y++) {
+                for (let z = Math.max(0, Math.floor((camera[2] - range) / 8)); z < Math.min(p.size / 8, Math.floor((camera[2] + range) / 8) + 1); z++) {
+                    let dist = Math.sqrt(Math.pow(camera[0] - ((x * 8) + 4), 2) + Math.pow(camera[1] - ((y * 8) + 4), 2) + Math.pow(camera[2] - ((z * 8) + 4), 2));
+                    if (dist <= range) {
+                        const tvec = glm.vec3.fromValues((x * 8) + 4 - camera[0], (y * 8) + 4 - camera[1], (z * 8) + 4 - camera[2]);
+                        glm.vec3.normalize(tvec, tvec);
+                        let adiff = Util.rad2Deg(Math.acos(glm.vec3.dot(tvec, cameraFace)));
+                        if ((dist < range - 2 && adiff < 180 - (dist * (120 / (range - 2)))) || adiff < 60) {
                             let rend = this.getSector(x * 8, y * 8, z * 8).getForRender(this);
                             for (let t in rend.tiles) {
                                 if (rend.tiles.hasOwnProperty(t)) {
@@ -144,22 +145,20 @@ export default class Map {
                 }
             }
         }
+        let pos = 0;
+        let count = 0;
         for (let t in cnt) {
             if (cnt.hasOwnProperty(t)) {
-                if (!buffs[t])
-                    buffs[t] = {buf:new Float32Array(Math.floor(TYPE_BUFFER_SIZE[t]/22*range)),count:cnt[t]};
-                else
-                    buffs[t].count = cnt[t];
+                count += cnt[t];
 
-                let pos = 0;
-                arrs[t].forEach(u8v=>{
-                    buffs[t].buf.set(u8v, pos);
-                    pos+= u8v.buffer.byteLength;
+                arrs[t].forEach(u8v=> {
+                    vertexData.set(u8v, pos);
+                    pos += u8v.buffer.byteLength;
                 });
             }
         }
 
-        return buffs;
+        return count;
     }
 
     exportSector(x,y,z){

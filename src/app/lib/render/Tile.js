@@ -54,16 +54,24 @@ const TILE_TEX_RENDER = [
     ['grass','grassEdge','dirt'],
     ['stone']
 ];
-
+let rx = 10;
+let fcnt = 0;
 export default class Tile {
     static addFace(x,y,z,size,face,buffer){
+//        x=rx++;
+//        y=27;
+//        z=0;
+//        size=1;
+//        face = 5;
         const offset = face*FACE_SIZE;
 
         for (let n=0;n<6;n++) {
+            fcnt+=5;
+        //let n = 1;
             buffer.push((BASE_DATA[offset + (POINT_SIZE * n)] * size) + x);
             buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 1] * size) + y);
             buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 2] * size) + z);
-            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 3]*5);
+            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 3]);
             buffer.push(size);
 /*            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 4]);
             buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 5]);
@@ -94,5 +102,11 @@ export default class Tile {
     }
     static getTileTexBottom(ind){
         return TILE_TEX_RENDER[ind][TILE_TEX_RENDER[ind].length>2?2:0];
+    }
+
+    static getCount(){
+        let a = fcnt;
+        fcnt = 0;
+        return a;
     }
 };
