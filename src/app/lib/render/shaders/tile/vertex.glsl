@@ -4,7 +4,7 @@ attribute float a_index;
 
 uniform mat4 u_mvMatrix;
 uniform mat4 u_pMatrix;
-uniform float u_normuv[180];
+uniform float u_normuv[288];
 
 /*uniform vec3 u_sky_light;
 uniform vec3 u_sun_light_color;
@@ -30,6 +30,7 @@ varying vec2 v_uv;
 
 //const float dataWidth = 4.0;
 //const float dataPos = 148.0;
+uniform float u_texDataWidth;
 
 float getDataPoint(float ind, float width, sampler2D tex) {
     float x = (mod(ind,width)+0.5)/width;
@@ -48,7 +49,7 @@ float testValue(float val,float match) {
 //}
 
 void main(void) {
-    float c_index = a_index*100.0;
+    float c_index = a_index*1024.0;
 /*    float m3 = mod(c_index,3.0);
     vec4 a_position = vec4(
         u_camera.x+(((min(0.0,m3-1.0)*2.0)+1.0)*0.5)+getDataPoint((floor(c_index/3.0)*5.0)+4.0,1024.0,tex1),//+floor(c_index/30.0),
@@ -59,12 +60,17 @@ void main(void) {
 //    v_test.x = 0.0;//a_position.x;
 //    v_test.y = 0.0;//a_position.y;
     vec4 a_position = vec4(
-        getDataPoint((c_index*5.0),1024.0,tex31),
-        getDataPoint((c_index*5.0)+1.0,1024.0,tex31),
-        getDataPoint((c_index*5.0)+2.0,1024.0,tex31),
-        getDataPoint((c_index*5.0)+3.0,1024.0,tex31)*5.0
+        getDataPoint(floor(c_index/6.0)*5.0,u_texDataWidth,tex31),
+        getDataPoint((floor(c_index/6.0)*5.0)+1.0,u_texDataWidth,tex31),
+        getDataPoint((floor(c_index/6.0)*5.0)+2.0,u_texDataWidth,tex31),
+        getDataPoint((floor(c_index/6.0)*5.0)+3.0,u_texDataWidth,tex31)*48.0
     );
-    float a_size = getDataPoint((c_index*5.0)+4.0,1024.0,tex31);
+    float a_size = getDataPoint((floor(c_index/6.0)*5.0)+4.0,u_texDataWidth,tex31);
+
+    int basePoint = int(a_position.w)+int(mod(c_index,6.0)*8.0);
+    a_position.x += u_normuv[basePoint+0] * a_size;
+    a_position.y += u_normuv[basePoint+1] * a_size;
+    a_position.z += u_normuv[basePoint+2] * a_size;
 
 //v_test = getDataPoint((c_index*5.0),1024.0,tex1) * testValue(c_index,1.0);
 /*float fuck = c_index*5.0;
@@ -80,7 +86,7 @@ void main(void) {
     float underground_fog_dist = u_view_distance - 1.0;
 
     v_normal = vec3(u_normuv[int(a_position.w)],u_normuv[int(a_position.w)+1],u_normuv[int(a_position.w)+2]);*/
-    v_uv = vec2(u_normuv[int(a_position.w)+3]*a_size,u_normuv[int(a_position.w)+4]*a_size);
+    v_uv = vec2(u_normuv[basePoint+6]*a_size,u_normuv[basePoint+7]*a_size);
     //v_uv.s = a_position.x-16.0;
     //v_uv.t = a_position.y-27.0;
 /*

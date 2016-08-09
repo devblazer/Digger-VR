@@ -19,12 +19,13 @@ else
 function run() {
     const webGL = new WebGL(true);
     const VIEW_DISTANCE = 17;
+    const TEX_DATA_WIDTH = 512;
 
-    const vertexIndexTracker = new Float32Array(1024*1024);
-    for (let n=0;n<1024*1024;n++)
-        vertexIndexTracker[n] = n/100;
+    const vertexIndexTracker = new Float32Array(TEX_DATA_WIDTH*TEX_DATA_WIDTH);
+    for (let n=0;n<TEX_DATA_WIDTH*TEX_DATA_WIDTH;n++)
+        vertexIndexTracker[n] = n/1024;
 
-    const vertexData = new Uint8Array(1024*1024);
+    const vertexData = new Uint8Array(TEX_DATA_WIDTH*TEX_DATA_WIDTH);
 
     webGL.createTexture('grass', 'textures/grass.png');
     webGL.createTexture('grassEdge', 'textures/grassEdge.png');
@@ -39,6 +40,7 @@ function run() {
             {name: 'a_index', size: 4, count: 1, type: 'FLOAT'}
         ],
         [
+            {name: 'u_texDataWidth', type: '1f', value: TEX_DATA_WIDTH},
 /*            {name: 'u_sky_light', type: '3fv', value: [1.0, 1.0, 1.0]},
             {name: 'u_view_distance', type: '1f', value: VIEW_DISTANCE},
             {name: 'u_height', type: '1f', value: null},*/
@@ -52,54 +54,54 @@ function run() {
             {
                 name: 'u_normuv', type: '1fv', value: [
                 // x-
-                -1, 0, 0, 0, 0,
-                -1, 0, 0, 1, 0,
-                -1, 0, 0, 0, 1,
-                -1, 0, 0, 0, 1,
-                -1, 0, 0, 1, 0,
-                -1, 0, 0, 1, 1,
+                0, 0, 0, -1, 0, 0, 0, 0,
+                0, 0, 1, -1, 0, 0, 1, 0,
+                0, 1, 0, -1, 0, 0, 0, 1,
+                0, 1, 0, -1, 0, 0, 0, 1,
+                0, 0, 1, -1, 0, 0, 1, 0,
+                0, 1, 1, -1, 0, 0, 1, 1,
                 // y-
-                0, -1, 0, 0, 0,
-                0, -1, 0, 1, 0,
-                0, -1, 0, 0, 1,
-                0, -1, 0, 0, 1,
-                0, -1, 0, 1, 0,
-                0, -1, 0, 1, 1,
+                0, 0, 0, 0, -1, 0, 0, 0,
+                1, 0, 0, 0, -1, 0, 1, 0,
+                0, 0, 1, 0, -1, 0, 0, 1,
+                0, 0, 1, 0, -1, 0, 0, 1,
+                1, 0, 0, 0, -1, 0, 1, 0,
+                1, 0, 1, 0, -1, 0, 1, 1,
                 // z-
-                0, 0, -1, 0, 0,
-                0, 0, -1, 1, 0,
-                0, 0, -1, 0, 1,
-                0, 0, -1, 0, 1,
-                0, 0, -1, 1, 0,
-                0, 0, -1, 1, 1,
+                1, 0, 0, 0, 0, -1, 0, 0,
+                0, 0, 0, 0, 0, -1, 1, 0,
+                1, 1, 0, 0, 0, -1, 0, 1,
+                1, 1, 0, 0, 0, -1, 0, 1,
+                0, 0, 0, 0, 0, -1, 1, 0,
+                0, 1, 0, 0, 0, -1, 1, 1,
                 // x+
-                1, 0, 0, 0, 0,
-                1, 0, 0, 1, 0,
-                1, 0, 0, 0, 1,
-                1, 0, 0, 0, 1,
-                1, 0, 0, 1, 0,
-                1, 0, 0, 1, 1,
+                1, 0, 1, 1, 0, 0, 0, 0,
+                1, 0, 0, 1, 0, 0, 1, 0,
+                1, 1, 1, 1, 0, 0, 0, 1,
+                1, 1, 1, 1, 0, 0, 0, 1,
+                1, 0, 0, 1, 0, 0, 1, 0,
+                1, 1, 0, 1, 0, 0, 1, 1,
                 // y+
-                0, 1, 0, 0, 0,
-                0, 1, 0, 1, 0,
-                0, 1, 0, 0, 1,
-                0, 1, 0, 0, 1,
-                0, 1, 0, 1, 0,
-                0, 1, 0, 1, 1,
+                1, 1, 0, 0, 1, 0, 0, 0,
+                0, 1, 0, 0, 1, 0, 1, 0,
+                1, 1, 1, 0, 1, 0, 0, 1,
+                1, 1, 1, 0, 1, 0, 0, 1,
+                0, 1, 0, 0, 1, 0, 1, 0,
+                0, 1, 1, 0, 1, 0, 1, 1,
                 // z+
-                0, 0, 1, 0, 0,
-                0, 0, 1, 1, 0,
-                0, 0, 1, 0, 1,
-                0, 0, 1, 0, 1,
-                0, 0, 1, 1, 0,
-                0, 0, 1, 1, 1
+                0, 0, 1, 0, 0, 1, 0, 0,
+                1, 0, 1, 0, 0, 1, 1, 0,
+                0, 1, 1, 0, 0, 1, 0, 1,
+                0, 1, 1, 0, 0, 1, 0, 1,
+                1, 0, 1, 0, 0, 1, 1, 0,
+                1, 1, 1, 0, 0, 1, 1, 1
             ]
         }
     ]);
 
     var lastTime = (new Date()).getTime();
 
-    const mapSize = 32;
+    const mapSize = 64;
     const camera = glm.vec3.fromValues(mapSize / 2, mapSize - 5, mapSize / 2);
 
     const cameraFace = glm.vec3.fromValues(0, 0, -1);
@@ -130,95 +132,23 @@ loops++;
         cnt = map.getForRender(camera, cameraFace, VIEW_DISTANCE + 5,vertexData,vertexIndexTracker);
 
         GL.bindTexture(GL.TEXTURE_2D,tex);
-        GL.texImage2D(GL.TEXTURE_2D,0,GL.LUMINANCE,1024,1024,0,GL.LUMINANCE,GL.UNSIGNED_BYTE, vertexData);
+        GL.texImage2D(GL.TEXTURE_2D,0,GL.LUMINANCE,TEX_DATA_WIDTH,TEX_DATA_WIDTH,0,GL.LUMINANCE,GL.UNSIGNED_BYTE, vertexData);
         GL.texParameteri(GL.TEXTURE_2D,GL.TEXTURE_MAG_FILTER,GL.NEAREST);
         GL.texParameteri(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER,GL.NEAREST);
         GL.bindTexture(GL.TEXTURE_2D,null);
 
-/*        vertexData[0] = 16;
-        vertexData[1] = 27;
-        vertexData[2] = 10;
-        vertexData[3] = 30;
-        vertexData[4] = 1;
-
-        vertexData[5] = 17;
-        vertexData[6] = 27;
-        vertexData[7] = 10;
-        vertexData[8] = 31;
-        vertexData[9] = 1;
-
-        vertexData[10] = 16;
-        vertexData[11] = 28;
-        vertexData[12] = 10;
-        vertexData[13] = 32;
-        vertexData[14] = 1;
-
-        vertexData[15] = 16;
-        vertexData[16] = 28;
-        vertexData[17] = 10;
-        vertexData[18] = 33;
-        vertexData[19] = 1;
-
-        vertexData[20] = 17;
-        vertexData[21] = 27;
-        vertexData[22] = 10;
-        vertexData[23] = 34;
-        vertexData[24] = 1;
-
-        vertexData[25] = 17;
-        vertexData[26] = 28;
-        vertexData[27] = 10;
-        vertexData[28] = 35;
-        vertexData[29] = 1;
-
-        vertexData[30] = 17;
-        vertexData[31] = 28;
-        vertexData[32] = 10;
-        vertexData[33] = 30;
-        vertexData[34] = 2;
-
-        vertexData[35] = 19;
-        vertexData[36] = 28;
-        vertexData[37] = 10;
-        vertexData[38] = 31;
-        vertexData[39] = 2;
-
-        vertexData[40] = 17;
-        vertexData[41] = 30;
-        vertexData[42] = 10;
-        vertexData[43] = 32;
-        vertexData[44] = 2;
-
-        vertexData[45] = 17;
-        vertexData[46] = 30;
-        vertexData[47] = 10;
-        vertexData[48] = 33;
-        vertexData[49] = 2;
-
-        vertexData[50] = 19;
-        vertexData[51] = 28;
-        vertexData[52] = 10;
-        vertexData[53] = 34;
-        vertexData[54] = 2;
-
-        vertexData[55] = 19;
-        vertexData[56] = 30;
-        vertexData[57] = 10;
-        vertexData[58] = 35;
-        vertexData[59] = 2;*/
-
-        for (let e = 0; e < 1; e++) {
+        for (let e = 0; e < 2; e++) {
             let myShader = webGL._private.shaders['tile'];
             GL.useProgram(myShader.shader);
 
             let cvec = glm.vec3.create();
             glm.vec3.scale(cvec, cameraRight, (e - 0.5) * eyeDistance);
             glm.vec3.add(cvec, cvec, camera);
-            webGL.renderStart(cvec, cameraFace, cameraUp, fogColor, e + 0);
+            webGL.renderStart(cvec, cameraFace, cameraUp, fogColor, e + 1);
     GL.activeTexture(GL['TEXTURE31']);
     GL.bindTexture(GL.TEXTURE_2D, tex);
     GL.uniform1i(GL.getUniformLocation(myShader.shader, 'tex31'), 31);
-            webGL.render(myShader, 'TRIANGLES', vertexIndexTracker, cnt/5, 0, ['dirt'], {//Math.floor(cnt/90)
+            webGL.render(myShader, 'TRIANGLES', vertexIndexTracker, cnt/5*6, 0, ['dirt'], {// cnt/5
 //                u_camera_face: cameraFace,
                 u_camera: camera//,
 //                u_height: depthRatio

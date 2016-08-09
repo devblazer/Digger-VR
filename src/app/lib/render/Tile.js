@@ -60,24 +60,25 @@ export default class Tile {
     static addFace(x,y,z,size,face,buffer){
 //        x=rx++;
 //        y=27;
-//        z=0;
+//        z=3;
 //        size=1;
-//        face = 5;
+//        face = 3;
         const offset = face*FACE_SIZE;
 
-        for (let n=0;n<6;n++) {
+        //for (let n=0;n<6;n++) {
             fcnt+=5;
         //let n = 1;
-            buffer.push((BASE_DATA[offset + (POINT_SIZE * n)] * size) + x);
-            buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 1] * size) + y);
-            buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 2] * size) + z);
-            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 3]);
+            buffer.push(x);
+            buffer.push(y);
+            buffer.push(z);
+            buffer.push(face);
             buffer.push(size);
-/*            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 4]);
-            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 5]);
-            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 6] * size);
-            buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 7] * size);*/
-        }
+/*        buffer.push((BASE_DATA[offset + (POINT_SIZE * n)] * size) + x);
+        buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 1] * size) + y);
+        buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 2] * size) + z);
+        buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 3]);
+        buffer.push(size);*/
+        //}
     }
 
     static getSide(face){
