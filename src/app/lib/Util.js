@@ -10,6 +10,7 @@ const RAD = Math.PI/180;
 const UID_CHARS = 'abcdefghijklmnopqrstuvwxyz01234567890'.split('');
 
 var lastPerf = 0;
+var perfTypes = [];
 var debugReady = false;
 
 export default {

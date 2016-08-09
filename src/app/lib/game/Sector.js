@@ -16,12 +16,21 @@ const checkFace = (x,y,z,s,dir,map)=>{
     let covered = true;
     let didSearch = false;
 
-    for (let tx=Math.max(0,x+f[0]+(s*f[1])); tx<Math.min(map.getSize(),x+f[2]+(s*f[3])); tx++)
-        for (let ty=Math.max(0,y+f[4]+(s*f[5])); ty<Math.min(map.getSize(),y+f[6]+(s*f[7])); ty++) {
-            for (let tz=Math.max(0,z+f[8]+(s*f[9])); tz<Math.min(map.getSize(),z+f[10]+(s*f[11])); tz++) {
+    let xs = Math.max(0,x+f[0]+(s*f[1]));
+    let xe = Math.min(map.getSize(),x+f[2]+(s*f[3]));
+    let ys = Math.max(0,y+f[4]+(s*f[5]));
+    let ye = Math.min(map.getSize(),y+f[6]+(s*f[7]));
+    let zs = Math.max(0,z+f[8]+(s*f[9]));
+    let ze = Math.min(map.getSize(),z+f[10]+(s*f[11]));
+
+    for (let tx=xs; tx<xe; tx++)
+        for (let ty=ys; ty<ye; ty++) {
+            for (let tz=zs; tz<ze; tz++) {
                 if (Math.floor(x/8)==Math.floor(tx/8) && Math.floor(y/8)==Math.floor(ty/8) &&Math.floor(z/8)==Math.floor(tz/8)) {
-                    didSearch = true;
-                    covered &= map.get(tx, ty, tz);
+//                    if (map.isSectorLoaded(tx,ty,tz)) {
+                        didSearch = true;
+                        covered &= map.get(tx, ty, tz);
+//                    }
                 }
             }
         }
@@ -37,10 +46,12 @@ export default class Sector extends Cube {
             needsRender:true,
             optimisedData:null,
             renderData:null,
+            tracker:{check:0,add:0},
             x,
             y,
             z
         };
+        this.modified = 0;
     }
 
     optimise(){
@@ -88,7 +99,7 @@ export default class Sector extends Cube {
         if (p.needsRender){
             p.needsRender = false;
 
-            p.renderData = {tiles:[]};
+            p.renderData = [];
             this.optimise();
 
             for (let type in p.optimisedData)
@@ -99,22 +110,17 @@ export default class Sector extends Cube {
                         for (let f = 0; f < 6; f++) {
                             let s = Tile.getSide(f);
                             let t = Tile.getTileTexForSide(type.substr(1)/1,s);
-                            if (!p.renderData.tiles[t])
-                                p.renderData.tiles[t] = {type: t, faces: []};
+
                             let size = Math.pow(2, tile[3]);
                             let res = checkFace((tile[0]*size)+p.x, (tile[1]*size)+p.y, (tile[2]*size)+p.z, size, f,map);
 
                             if (res) {
-                                Tile.addFace((tile[0] * size) + p.x, (tile[1] * size) + p.y, (tile[2] * size) + p.z, size, f, p.renderData.tiles[t].faces);
+                                Tile.addFace((tile[0] * size) + p.x, (tile[1] * size) + p.y, (tile[2] * size) + p.z, size, f, t, p.renderData);
                             }
                         }
                     });
                 }
-            for (let type in p.renderData.tiles) {
-                if (p.renderData.tiles.hasOwnProperty(type)) {
-                    p.renderData.tiles[type].faces = new Uint8Array(p.renderData.tiles[type].faces);
-                }
-            }
+            p.renderData = new Uint8Array(p.renderData);
         }
         return p.renderData;
     }

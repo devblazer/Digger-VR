@@ -21,14 +21,25 @@ export default class Map {
             renderBuff:new Uint8Array(1024*1024),
             sectors:[],
             plots:[],
-            sectorCache:[]
+            sectorCache:[],
         };
         this.autoSave = true;
 
         this.init();
     }
 
-    getSector(x,y,z){
+    isSectorLoaded(x,y,z) {
+        const p = this._private;
+
+        x = Math.floor(x/8);
+        y = Math.floor(y/8);
+        z = Math.floor(z/8);
+        const str = x+'_'+y+'_'+z;
+
+        return !!p.sectors[str];
+    }
+
+    getSector(x,y,z,updateModified = false){
         const p = this._private;
 
         x = Math.floor(x/8);
@@ -38,7 +49,7 @@ export default class Map {
 
         if (!p.sectors[str])
             this.loadSector(x,y,z);
-        else
+        else if (updateModified)
             p.sectorCache.filter(cache=>{return cache.hash==str})[0].modified = (new Date()).getTime();
         return p.sectors[str];
     }
@@ -116,9 +127,7 @@ export default class Map {
     getForRender(camera,cameraFace,range=22,vertexData,vertexIndexTracker){
         const p = this._private;
 
-        const cnt = {};
-        const arrs = {};
-        const buffs = p.buffs;
+        const arrs = [];
 
         for (let x = Math.max(0, Math.floor((camera[0] - range) / 8)); x < Math.min(p.size / 8, Math.floor((camera[0] + range) / 8) + 1); x++) {
             for (let y = Math.max(0, Math.floor((camera[1] - range) / 8)); y < Math.min(p.size / 8, Math.floor((camera[1] + range) / 8) + 1); y++) {
@@ -129,36 +138,20 @@ export default class Map {
                         glm.vec3.normalize(tvec, tvec);
                         let adiff = Util.rad2Deg(Math.acos(glm.vec3.dot(tvec, cameraFace)));
                         if ((dist < range - 2 && adiff < 180 - (dist * (120 / (range - 2)))) || adiff < 60) {
-                            let rend = this.getSector(x * 8, y * 8, z * 8).getForRender(this);
-                            for (let t in rend.tiles) {
-                                if (rend.tiles.hasOwnProperty(t)) {
-                                    if (!cnt[t]) {
-                                        cnt[t] = 0;
-                                        arrs[t] = [];
-                                    }
-                                    arrs[t].push(rend.tiles[t].faces);
-                                    cnt[t] += rend.tiles[t].faces.buffer.byteLength;
-                                }
-                            }
+                            let rend = this.getSector(x * 8, y * 8, z * 8,true).getForRender(this);
+                            arrs.push(rend);
                         }
                     }
                 }
             }
         }
         let pos = 0;
-        let count = 0;
-        for (let t in cnt) {
-            if (cnt.hasOwnProperty(t)) {
-                count += cnt[t];
+        arrs.forEach(u8v=> {
+            vertexData.set(u8v, pos);
+            pos += u8v.buffer.byteLength;
+        });
 
-                arrs[t].forEach(u8v=> {
-                    vertexData.set(u8v, pos);
-                    pos += u8v.buffer.byteLength;
-                });
-            }
-        }
-
-        return count;
+        return pos;
     }
 
     exportSector(x,y,z){

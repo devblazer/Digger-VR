@@ -8,6 +8,7 @@ const getShader = function( type, shaderImport) {
     this._private.gl.compileShader(shader);
     if (!this._private.gl.getShaderParameter(shader, this._private.gl.COMPILE_STATUS)) {
         console.log('shader error');
+        alert(this._private.gl.getShaderInfoLog(shader));
         console.log(this._private.gl.getShaderInfoLog(shader));
     }
     return shader;
@@ -184,7 +185,7 @@ export default class WebGL {
         shaderProgram.mvMUniform = self.gl.getUniformLocation(shaderProgram, "u_mvMatrix");
     }
 
-    createTexture(name,src,wrapX=true,wrapY=true,callback){
+    createTexture(name,src,mipMap=true,wrapX=true,wrapY=true,callback){
         const self = this._private;
         const tex = self.gl.createTexture();
         tex.image = new Image();
@@ -193,10 +194,11 @@ export default class WebGL {
             self.gl.pixelStorei(self.gl.UNPACK_FLIP_Y_WEBGL,true);
             self.gl.texImage2D(self.gl.TEXTURE_2D,0,self.gl.RGBA,self.gl.RGBA,self.gl.UNSIGNED_BYTE, tex.image);
             self.gl.texParameteri(self.gl.TEXTURE_2D,self.gl.TEXTURE_MAG_FILTER,self.gl.LINEAR);
-            self.gl.texParameteri(self.gl.TEXTURE_2D,self.gl.TEXTURE_MIN_FILTER,self.gl.LINEAR_MIPMAP_NEAREST);
+            self.gl.texParameteri(self.gl.TEXTURE_2D,self.gl.TEXTURE_MIN_FILTER,mipMap?self.gl.LINEAR_MIPMAP_NEAREST:self.gl.LINEAR);
             self.gl.texParameteri(self.gl.TEXTURE_2D,wrapX?self.gl.TEXTURE_WRAP_S:self.gl.CLAMP_TO_EDGE,self.gl.REPEAT);
             self.gl.texParameteri(self.gl.TEXTURE_2D,wrapY?self.gl.TEXTURE_WRAP_T:self.gl.CLAMP_TO_EDGE,self.gl.REPEAT);
-            self.gl.generateMipmap(self.gl.TEXTURE_2D);
+            if (mipMap)
+                self.gl.generateMipmap(self.gl.TEXTURE_2D);
             self.gl.bindTexture(self.gl.TEXTURE_2D,null);
             if (callback)
                 callback();

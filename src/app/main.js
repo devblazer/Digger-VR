@@ -18,7 +18,12 @@ else
 
 function run() {
     const webGL = new WebGL(true);
-    const VIEW_DISTANCE = 17;
+
+    const VIEW_DISTANCE = 23;
+    const mapSize = 64;
+    const camera = glm.vec3.fromValues(mapSize / 2, mapSize - 5, mapSize / 2);
+
+
     const TEX_DATA_WIDTH = 512;
 
     const vertexIndexTracker = new Float32Array(TEX_DATA_WIDTH*TEX_DATA_WIDTH);
@@ -27,10 +32,7 @@ function run() {
 
     const vertexData = new Uint8Array(TEX_DATA_WIDTH*TEX_DATA_WIDTH);
 
-    webGL.createTexture('grass', 'textures/grass.png');
-    webGL.createTexture('grassEdge', 'textures/grassEdge.png');
-    webGL.createTexture('dirt', 'textures/dirt.png');
-    webGL.createTexture('stone', 'textures/stone.png');
+    webGL.createTexture('blocks', 'textures/combined.png',false); //0
 
     const fog_sky_color = [0.3, 0.65, 1.0];
     const fog_underground_color = [0.0, 0.0, 0.0];
@@ -41,68 +43,86 @@ function run() {
         ],
         [
             {name: 'u_texDataWidth', type: '1f', value: TEX_DATA_WIDTH},
-/*            {name: 'u_sky_light', type: '3fv', value: [1.0, 1.0, 1.0]},
+            {name: 'u_sky_light', type: '3fv', value: [1.0, 1.0, 1.0]},
             {name: 'u_view_distance', type: '1f', value: VIEW_DISTANCE},
-            {name: 'u_height', type: '1f', value: null},*/
-            {name: 'u_camera', type: '3fv', value: null}/*,
+            {name: 'u_height', type: '1f', value: null},
+            {name: 'u_camera', type: '3fv', value: null},
             {name: 'u_camera_face', type: '3fv', value: null},
             {name: 'u_self_light', type: '3fv', value: [1.0, 1.0, 1.0]},
             {name: 'u_sun_light_face', type: '3fv', value: [-0.3, -0.5, -0.2]},
             {name: 'u_fog_sky_color', type: '3fv', value: fog_sky_color},
             {name: 'u_fog_underground_color', type: '3fv', value: fog_underground_color},
-            {name: 'u_sun_light_color', type: '3fv', value: [1.0, 1.0, 1.0]}*/,
+            {name: 'u_sun_light_color', type: '3fv', value: [1.0, 1.0, 1.0]},
+            {name: 'u_cubeTextures', type: '1fv', value: [
+                0, 0, 0,
+                1, 2, 0,
+                3, 3, 3
+            ]},
+            {name: 'u_cubeUV', type: '1fv', value: [
+                0, 0,
+                1, 0,
+                0, 1,
+                0, 1,
+                1, 0,
+                1, 1
+            ]},
+            {name: 'u_cubeNormals', type: '1fv', value: [
+                -1, 0, 0,
+                0, -1, 0,
+                0, 0, -1,
+                1, 0, 0,
+                0, 1, 0,
+                0, 0, 1
+            ]},
             {
-                name: 'u_normuv', type: '1fv', value: [
+                name: 'u_cubePositions', type: '1fv', value: [
                 // x-
-                0, 0, 0, -1, 0, 0, 0, 0,
-                0, 0, 1, -1, 0, 0, 1, 0,
-                0, 1, 0, -1, 0, 0, 0, 1,
-                0, 1, 0, -1, 0, 0, 0, 1,
-                0, 0, 1, -1, 0, 0, 1, 0,
-                0, 1, 1, -1, 0, 0, 1, 1,
+                0, 0, 0,
+                0, 0, 1,
+                0, 1, 0,
+                0, 1, 0,
+                0, 0, 1,
+                0, 1, 1,
                 // y-
-                0, 0, 0, 0, -1, 0, 0, 0,
-                1, 0, 0, 0, -1, 0, 1, 0,
-                0, 0, 1, 0, -1, 0, 0, 1,
-                0, 0, 1, 0, -1, 0, 0, 1,
-                1, 0, 0, 0, -1, 0, 1, 0,
-                1, 0, 1, 0, -1, 0, 1, 1,
+                0, 0, 0,
+                1, 0, 0,
+                0, 0, 1,
+                0, 0, 1,
+                1, 0, 0,
+                1, 0, 1,
                 // z-
-                1, 0, 0, 0, 0, -1, 0, 0,
-                0, 0, 0, 0, 0, -1, 1, 0,
-                1, 1, 0, 0, 0, -1, 0, 1,
-                1, 1, 0, 0, 0, -1, 0, 1,
-                0, 0, 0, 0, 0, -1, 1, 0,
-                0, 1, 0, 0, 0, -1, 1, 1,
+                1, 0, 0,
+                0, 0, 0,
+                1, 1, 0,
+                1, 1, 0,
+                0, 0, 0,
+                0, 1, 0,
                 // x+
-                1, 0, 1, 1, 0, 0, 0, 0,
-                1, 0, 0, 1, 0, 0, 1, 0,
-                1, 1, 1, 1, 0, 0, 0, 1,
-                1, 1, 1, 1, 0, 0, 0, 1,
-                1, 0, 0, 1, 0, 0, 1, 0,
-                1, 1, 0, 1, 0, 0, 1, 1,
+                1, 0, 1,
+                1, 0, 0,
+                1, 1, 1,
+                1, 1, 1,
+                1, 0, 0,
+                1, 1, 0,
                 // y+
-                1, 1, 0, 0, 1, 0, 0, 0,
-                0, 1, 0, 0, 1, 0, 1, 0,
-                1, 1, 1, 0, 1, 0, 0, 1,
-                1, 1, 1, 0, 1, 0, 0, 1,
-                0, 1, 0, 0, 1, 0, 1, 0,
-                0, 1, 1, 0, 1, 0, 1, 1,
+                1, 1, 0,
+                0, 1, 0,
+                1, 1, 1,
+                1, 1, 1,
+                0, 1, 0,
+                0, 1, 1,
                 // z+
-                0, 0, 1, 0, 0, 1, 0, 0,
-                1, 0, 1, 0, 0, 1, 1, 0,
-                0, 1, 1, 0, 0, 1, 0, 1,
-                0, 1, 1, 0, 0, 1, 0, 1,
-                1, 0, 1, 0, 0, 1, 1, 0,
-                1, 1, 1, 0, 0, 1, 1, 1
+                0, 0, 1,
+                1, 0, 1,
+                0, 1, 1,
+                0, 1, 1,
+                1, 0, 1,
+                1, 1, 1
             ]
         }
     ]);
 
     var lastTime = (new Date()).getTime();
-
-    const mapSize = 64;
-    const camera = glm.vec3.fromValues(mapSize / 2, mapSize - 5, mapSize / 2);
 
     const cameraFace = glm.vec3.fromValues(0, 0, -1);
     const cameraUp = glm.vec3.fromValues(0, 1, 0);
@@ -148,10 +168,10 @@ loops++;
     GL.activeTexture(GL['TEXTURE31']);
     GL.bindTexture(GL.TEXTURE_2D, tex);
     GL.uniform1i(GL.getUniformLocation(myShader.shader, 'tex31'), 31);
-            webGL.render(myShader, 'TRIANGLES', vertexIndexTracker, cnt/5*6, 0, ['dirt'], {// cnt/5
-//                u_camera_face: cameraFace,
-                u_camera: camera//,
-//                u_height: depthRatio
+            webGL.render(myShader, 'TRIANGLES', vertexIndexTracker, cnt/5*6, 0, ['blocks'], {
+                u_camera_face: cameraFace,
+                u_camera: camera,
+                u_height: depthRatio
             });
         }
 

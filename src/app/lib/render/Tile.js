@@ -43,42 +43,62 @@ const BASE_DATA = [
     1, 1, 1, 35
 ];
 
+const FACE_TILE_REPLICATION = [
+    [0,1,1],
+    [1,0,1],
+    [1,1,0],
+    [0,1,1],
+    [1,0,1],
+    [1,1,0]
+];
+const FACE_TILE_ADDITION = [
+    [0,0,0],
+    [0,0,0],
+    [0,0,0],
+    [1,0,0],
+    [0,1,0],
+    [0,0,1]
+];
+
 const POINT_SIZE = 4;
 const FACE_SIZE = 24;
+
+const TILE_TEX_IND = ['','dirt','grassEdge','grass','stone'];
 
 const FACE2SIDE = [1,2,1,1,0,1];
 const TILES = ['empty','dirt','grass','stone'];
 const TILE_TEX_RENDER = [
-    [],
-    ['dirt'],
-    ['grass','grassEdge','dirt'],
-    ['stone']
+    [0,0,0],
+    [1,1,1],
+    [3,2,1],
+    [4,4,4]
 ];
 let rx = 10;
 let fcnt = 0;
 export default class Tile {
-    static addFace(x,y,z,size,face,buffer){
+    static addFace(x,y,z,size,face,type,buffer) {
 //        x=rx++;
 //        y=27;
 //        z=3;
 //        size=1;
 //        face = 3;
-        const offset = face*FACE_SIZE;
+        const offset = face * FACE_SIZE;
 
-        //for (let n=0;n<6;n++) {
-            fcnt+=5;
-        //let n = 1;
-            buffer.push(x);
-            buffer.push(y);
-            buffer.push(z);
-            buffer.push(face);
-            buffer.push(size);
-/*        buffer.push((BASE_DATA[offset + (POINT_SIZE * n)] * size) + x);
-        buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 1] * size) + y);
-        buffer.push((BASE_DATA[offset + (POINT_SIZE * n) + 2] * size) + z);
-        buffer.push(BASE_DATA[offset + (POINT_SIZE * n) + 3]);
-        buffer.push(size);*/
-        //}
+        for (let sx = 0; sx < Math.max(1,size * FACE_TILE_REPLICATION[face][0]); sx++) {
+            for (let sy = 0; sy < Math.max(1,size * FACE_TILE_REPLICATION[face][1]); sy++) {
+                for (let sz = 0; sz < Math.max(1,size * FACE_TILE_REPLICATION[face][2]); sz++) {
+                    //for (let n=0;n<6;n++) {
+                    fcnt += 5;
+                    //let n = 1;
+                    buffer.push(x + sx + FACE_TILE_ADDITION[face][0]*(size-1));
+                    buffer.push(y + sy + FACE_TILE_ADDITION[face][1]*(size-1));
+                    buffer.push(z + sz + FACE_TILE_ADDITION[face][2]*(size-1));
+                    buffer.push(face);
+                    buffer.push(type-1);
+                    //}
+                }
+            }
+        }
     }
 
     static getSide(face){
