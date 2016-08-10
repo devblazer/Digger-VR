@@ -2,6 +2,8 @@ import Util from './../Util.js';
 import $ from 'jquery';
 import glm from 'gl-matrix';
 import THREE from 'three';
+import postRenderVertex from './shaders/postRender/vertex.glsl';
+import postRenderFragment from './shaders/postRender/fragment.glsl';
 
 const getShader = function( type, shaderImport) {
     var shader = this._private.gl.createShader(type);
@@ -24,26 +26,54 @@ const initGl = function(){
     self.gl.enable(self.gl.CULL_FACE);
     self.gl.cullFace(self.gl.BACK);
 
+    self.rttFramebuffer = self.gl.createFramebuffer();
+    self.gl.bindFramebuffer(self.gl.FRAMEBUFFER,self.rttFramebuffer);
+    self.rttFramebuffer.width = self.rttFramebuffer.height = self.rttFramebuffer.clientWidth = self.rttFramebuffer.clientHeight = 1024;
+
+    self.rttTexture = self.gl.createTexture();
+    self.gl.bindTexture(self.gl.TEXTURE_2D, self.rttTexture);
+    self.gl.texParameteri(self.gl.TEXTURE_2D,self.gl.TEXTURE_MAG_FILTER,self.gl.LINEAR);
+    self.gl.texParameteri(self.gl.TEXTURE_2D,self.gl.TEXTURE_MIN_FILTER,self.gl.LINEAR);
+    self.gl.texImage2D(self.gl.TEXTURE_2D, 0, self.gl.RGBA, self.rttFramebuffer.width, self.rttFramebuffer.height, 0, self.gl.RGBA, self.gl.UNSIGNED_BYTE, null);
+
+    self.renderbuffer = self.gl.createRenderbuffer();
+    self.gl.bindRenderbuffer(self.gl.RENDERBUFFER, self.renderbuffer);
+    self.gl.renderbufferStorage(self.gl.RENDERBUFFER, self.gl.DEPTH_COMPONENT16, self.rttFramebuffer.width, self.rttFramebuffer.height);
+
+    self.gl.framebufferTexture2D(self.gl.FRAMEBUFFER, self.gl.COLOR_ATTACHMENT0, self.gl.TEXTURE_2D, self.rttTexture, 0);
+    self.gl.framebufferRenderbuffer(self.gl.FRAMEBUFFER, self.gl.DEPTH_ATTACHMENT, self.gl.RENDERBUFFER, self.renderbuffer);
+
+    self.gl.bindTexture(self.gl.TEXTURE_2D, null);
+    self.gl.bindRenderbuffer(self.gl.RENDERBUFFER, null);
+    self.gl.bindFramebuffer(self.gl.FRAMEBUFFER, null);
+
+    this.createShader('postRender', postRenderVertex, postRenderFragment, [
+        {name: 'a_position', size: 4, count: 2, type: 'FLOAT'},
+        {name: 'a_uv', size: 4, count: 2, type: 'FLOAT'}
+    ]);
+
     $(window).on('resize',function(){
         self.canvas.width = self.canvas.clientWidth;
         self.canvas.height = self.canvas.clientHeight;
     });
 };
 
-const initScene = function(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0){
+const initScene = function(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0,renderTargetMetrics=null){
     const self = this._private;
-    let vpX=0,vpW=self.canvas.width/2,vpCW = self.canvas.clientWidth/2;
+    renderTargetMetrics = renderTargetMetrics || self.canvas;
+    let vpX=0,vpW=renderTargetMetrics.width/2,vpCW = renderTargetMetrics.clientWidth/2;
     if (mode==2)
-        vpX = self.canvas.width/2;
+        vpX = renderTargetMetrics.width/2;
     if (mode==0) {
-        vpW = self.canvas.width;
-        vpCW = self.canvas.clientWidth;
+        vpW = renderTargetMetrics.width;
+        vpCW = renderTargetMetrics.clientWidth;
     }
-    self.gl.viewport(vpX,0,vpW,self.canvas.height);
+
+    self.gl.viewport(vpX,0,vpW,renderTargetMetrics.height);
     self.gl.clearColor(clearColor[0],clearColor[1],clearColor[2], 1.0);
 
     self.mvMatrix = makeView(lookAt,camera,up);
-    self.pMatrix = makePerspective(Util.deg2Rad(60),vpCW / self.canvas.clientHeight,0.1,100)
+    self.pMatrix = makePerspective(Util.deg2Rad(mode?70:60),vpCW / renderTargetMetrics.clientHeight,0.1,100)
 
     self.gl.enable(self.gl.DEPTH_TEST);
     if (mode<2)
@@ -107,7 +137,7 @@ const initBuffer = function(glELEMENT_ARRAY_BUFFER, data){
     const self = this._private;
     var buf = self.gl.createBuffer();
     self.gl.bindBuffer(glELEMENT_ARRAY_BUFFER, buf);
-    self.gl.bufferData(glELEMENT_ARRAY_BUFFER, data, self.gl.STATIC_DRAW);
+    self.gl.bufferData(glELEMENT_ARRAY_BUFFER, data, self.gl.DYNAMIC_DRAW);
     return buf;
 };
 
@@ -127,7 +157,7 @@ const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={})
 
     textures.forEach((tex,ind)=>{
         self.gl.activeTexture(self.gl['TEXTURE'+ind]);
-        self.gl.bindTexture(self.gl.TEXTURE_2D, self.textures[tex]);
+        self.gl.bindTexture(self.gl.TEXTURE_2D, typeof tex=='string' ? self.textures[tex] : tex);
         self.gl.uniform1i(self.gl.getUniformLocation(shaderProgram,'tex'+ind),ind);
     });
 
@@ -235,19 +265,112 @@ export default class WebGL {
         self.textures[name] = tex;
     }
 
-    renderStart(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0){
+    renderStart(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0,renderTargetMetrics=null){
         const self = this._private;
-        initScene.call(this,camera,lookAt,up,clearColor,mode);
-        if (self.showFPS && mode<2)
+        if (self.showFPS && mode<2 && !renderTargetMetrics)
             self.fps++;
+        renderTargetMetrics = renderTargetMetrics || self.canvas;
+        initScene.call(this,camera,lookAt,up,clearColor,mode,renderTargetMetrics);
     }
 
-    render(shader, primitiveType, vertexBuffer, primitiveCount, offset=0,textures=[],uniforms={}){
+    render(shader, primitiveType, vertexBuffer, primitiveCount, offset=0,textures=[],uniforms={},target=null){
         const self = this._private;
 
         initBuffers.call(this,shader,vertexBuffer,null,textures,uniforms);
         self.gl.drawArrays(self.gl[primitiveType],offset, primitiveCount);
         unbindBuffers.call(this,shader);
+    }
+
+    startBarrelCapture(){
+        const self = this._private;
+
+        self.gl.bindFramebuffer(self.gl.FRAMEBUFFER, self.rttFramebuffer);
+    }
+
+    endBarrelCapture(){
+        const self = this._private;
+
+        self.gl.bindFramebuffer(self.gl.FRAMEBUFFER, null);
+    }
+
+    renderBarrel(eyeMode){
+        const self = this._private;
+        if (self.showFPS && eyeMode<2)
+            self.fps++;
+
+        initScene.call(this,[0,0,0],[0,0,-1],[0,1,0],[0.0,0.0,0.0],eyeMode);
+
+        let barrel = this.makeBarrelDistortionBuffer();
+        let vertexBuffer = new Float32Array(barrel);
+
+        initBuffers.call(this,'postRender',vertexBuffer,null,[self.rttTexture]);
+        self.gl.drawArrays(self.gl.TRIANGLES, 0, barrel.length/4);
+        unbindBuffers.call(this,'postRender');
+    }
+
+    makeBarrelDistortionBuffer(){
+        var distortion = new THREE.Vector2( 0.441, 0.156 );
+        var geometry = new THREE.PlaneBufferGeometry( 1, 1, 10, 20 ).removeAttribute( 'normal' ).toNonIndexed();
+
+        var positions = geometry.attributes.position.array;
+        var uvs = geometry.attributes.uv.array;
+
+        var positions2 = new Float32Array( positions.length * 2 );
+        positions2.set( positions );
+        positions2.set( positions, positions.length );
+
+        var uvs2 = new Float32Array( uvs.length * 2 );
+        uvs2.set( uvs );
+        uvs2.set( uvs, uvs.length );
+
+        var vector = new THREE.Vector2();
+        var length = positions.length / 3;
+
+        for ( var i = 0, l = positions2.length / 3; i < l; i ++ ) {
+
+            vector.x = positions2[ i * 3 + 0 ];
+            vector.y = positions2[ i * 3 + 1 ];
+
+            var dot = vector.dot( vector );
+            var scalar = 1.5 + ( distortion.x + distortion.y * dot ) * dot;
+
+            var offset = i < length ? 0 : 1;
+
+            positions2[ i * 3 + 0 ] = ( vector.x / scalar ) * 1.5 - 0.5 + offset;
+            positions2[ i * 3 + 1 ] = ( vector.y / scalar ) * 3.0;
+
+            uvs2[ i * 2 ] = ( uvs2[ i * 2 ] + offset ) * 0.5;
+
+        }
+
+        var ret  = [];
+        let c = 0;
+        for (let n=0;n<positions2.length/3;n++) {
+            c++;
+            ret.push(positions2[n*3]);
+            ret.push(positions2[(n*3)+1]);
+            ret.push(uvs2[n*2]);
+            ret.push(uvs2[(n*2)+1]);
+/*            if (c==61) {
+                ret.push(positions2[n*3]);
+                ret.push(positions2[(n*3)+1]);
+                ret.push(uvs2[n*2]);
+                ret.push(uvs2[(n*2)+1]);
+
+                ret.push(positions2[(n+1)*3]);
+                ret.push(positions2[((n+1)*3)+1]);
+                ret.push(uvs2[(n+1)*2]);
+                ret.push(uvs2[((n+1)*2)+1]);
+
+                c=0;
+            }*/
+        }
+        if (!window.first) {
+            console.log(positions);
+            console.log(positions2);
+        }
+        window.first = true;
+        return ret;
     }
 }
 export default WebGL;

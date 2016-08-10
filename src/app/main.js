@@ -27,7 +27,7 @@ function run() {
 
     const fog_sky_color = [0.3, 0.65, 1.0];
     const fog_underground_color = [0.0, 0.0, 0.0];
-    const eyeDistance = 0.6;
+    const eyeDistance = 0.2;
 
     const SELF_COL_RADIUS = 0.75;
     const SELF_COL_HEIGHT = 2.5;
@@ -180,7 +180,11 @@ function run() {
         GL.texParameteri(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER,GL.NEAREST);
         GL.bindTexture(GL.TEXTURE_2D,null);
 
+        if (orient.enabled)
+            webGL.startBarrelCapture();
+
         for (let e = 0; e < (orient.enabled?2:1); e++) {
+
             let myShader = webGL._private.shaders['tile'];
             GL.useProgram(myShader.shader);
 
@@ -192,7 +196,7 @@ function run() {
                 glm.vec3.add(cvec, cvec, tvec);
             }
             glm.vec3.add(cvec, cvec, camera);
-            webGL.renderStart(cvec, cameraFace, cameraUp, fogColor, e + (orient.enabled?1:0));
+            webGL.renderStart(cvec, cameraFace, cameraUp, fogColor, e + (orient.enabled?1:0),orient.enabled?webGL._private.rttFramebuffer:null);
             GL.activeTexture(GL['TEXTURE31']);
             GL.bindTexture(GL.TEXTURE_2D, tex);
             GL.uniform1i(GL.getUniformLocation(myShader.shader, 'tex31'), 31);
@@ -214,6 +218,11 @@ function run() {
             GL.disable(GL.DEPTH_TEST);
             webGL.render('gui', 'TRIANGLE_FAN', guiVertex, 4, 0, ['crosshair'],{u_eyeOffset:(orient.enabled?(e - 0.5):0) * eyeDistance});
             GL.enable(GL.DEPTH_TEST);
+        }
+
+        if (orient.enabled) {
+            webGL.endBarrelCapture();
+            webGL.renderBarrel(0);
         }
 
         requestAnimationFrame(render);

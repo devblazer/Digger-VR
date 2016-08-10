@@ -9,6 +9,6 @@ void main(void) {
     mat4 holder1 = u_mvMatrix;
     v_uv = a_uv;
     vec3 position = a_position;
-    position.x = position.x - (u_eyeOffset/3.0);
+    position.x = position.x - (u_eyeOffset/1.0);
     gl_Position = u_pMatrix * vec4(position, 1.0 );
 }
