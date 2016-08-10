@@ -12,6 +12,15 @@ const TYPE_BUFFER_SIZE = {
     stone:750000
 };
 
+const VECTOR_DIR = [
+    [-1,0,0],
+    [0,-1,0],
+    [0,0,-1],
+    [1,0,0],
+    [0,1,0],
+    [0,0,1]
+];
+
 export default class Map {
     constructor(size=64) {
         size -= size%8;
@@ -74,7 +83,81 @@ export default class Map {
         p.sectorCache.push({hash:str,x,y,z,modified:(new Date()).getTime()});
     }
 
+    findIntersect(origin,vector,limit) {
+        const p = this._private;
+
+        let pos = origin.slice();
+        let nBlock = [
+            Math.floor(pos[0]),
+            Math.floor(pos[1]),
+            Math.floor(pos[2])
+        ];
+
+        let found = null;
+        let looped = 0;
+
+        while (
+            nBlock[0]>=0&&nBlock[0]<p.size
+            && nBlock[1]>=0&&nBlock[1]<p.size
+            && nBlock[2]>=0&&nBlock[2]<p.size
+            && Math.sqrt(Math.pow(pos[0]-origin[0],2) + Math.pow(pos[1]-origin[1],2) + Math.pow(pos[2]-origin[2],2)) < limit
+            && looped < limit*10
+        ) {
+            looped++;
+            let dist = [1000000, 1000000, 1000000];
+            for (let axis = 0; axis < 3; axis++) {
+                let toMove = [];
+                let axisDist = 1000000;
+
+                if (vector[axis] < 0)
+                    axisDist = pos[axis] - Math.floor(pos[axis]);
+                else if (vector[axis] > 0)
+                    axisDist = Math.ceil(pos[axis]) - pos[axis];
+                axisDist = axisDist?axisDist:1;
+
+                for (let mAxis = 0; mAxis < 3; mAxis++) {
+                    if (mAxis != axis)
+                        toMove.push(vector[mAxis] / vector[axis] * axisDist);
+                }
+                dist[axis] = Math.sqrt(Math.pow(axisDist, 2) + Math.pow(toMove[0], 2) + Math.pow(toMove[1], 2));
+            }
+
+            let smallest = 2000000;
+            let nextAxis = -1;
+            dist.forEach((dist, axis)=> {
+                if (dist < smallest) {
+                    nextAxis = axis;
+                    smallest = dist;
+                }
+            });
+
+            let dirInd = (Math.sign(vector[nextAxis]) * 1.5) + 1.5 + nextAxis;
+
+            for (let axis = 0; axis < 3; axis++) {
+                if (axis == nextAxis)
+                    pos[axis] = Math.round(pos[axis]+ vector[axis] * dist[nextAxis]);
+                else
+                    pos[axis] += vector[axis] * dist[nextAxis];
+            }
+
+            nBlock = [
+                Math.floor(pos[0]) + VECTOR_DIR[dirInd][0] * (Math.floor(pos[0])!=pos[0] || vector[nextAxis] >= 0 ? 0 : 1),
+                Math.floor(pos[1]) + VECTOR_DIR[dirInd][1] * (Math.floor(pos[1])!=pos[1] || vector[nextAxis] >= 0 ? 0 : 1),
+                Math.floor(pos[2]) + VECTOR_DIR[dirInd][2] * (Math.floor(pos[2])!=pos[2] || vector[nextAxis] >= 0 ? 0 : 1)
+            ];
+
+            if (this.get(nBlock[0], nBlock[1], nBlock[2])) {
+                found = nBlock;
+                break;
+            }
+        }
+        return found;
+    }
+
     get(x,y,z){
+        const p = this._private;
+        if (x<0||x>=p.size || y<0||y>=p.size || z<0||z>=p.size)
+            return false;
         return this.getSector(x,y,z).get(x%8,y%8,z%8);
     }
     set(x,y,z,val){

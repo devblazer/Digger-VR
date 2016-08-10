@@ -5,6 +5,7 @@ export default class Orientation {
     constructor() {
 
         this.supported = window.orientation;
+        this.enabled = false;
         if (this.supported) {
             this.enabled = true;
 

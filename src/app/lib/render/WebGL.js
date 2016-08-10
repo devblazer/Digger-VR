@@ -1,6 +1,7 @@
 import Util from './../Util.js';
 import $ from 'jquery';
 import glm from 'gl-matrix';
+import THREE from 'three';
 
 const getShader = function( type, shaderImport) {
     var shader = this._private.gl.createShader(type);
@@ -18,8 +19,8 @@ const initGl = function(){
     const self = this._private;
     self.gl = self.canvas.getContext("webgl", { antialias: true });
     self.gl.viewport(0, 0, self.canvas.width, self.canvas.height);
-    //self.gl.enable(self.gl.BLEND);
-    //self.gl.blendFunc(self.gl.SRC_ALPHA, self.gl.ONE);
+    self.gl.enable(self.gl.BLEND);
+    self.gl.blendFunc(self.gl.SRC_ALPHA, self.gl.ONE_MINUS_SRC_ALPHA);
     self.gl.enable(self.gl.CULL_FACE);
     self.gl.cullFace(self.gl.BACK);
 
@@ -40,9 +41,9 @@ const initScene = function(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0){
     }
     self.gl.viewport(vpX,0,vpW,self.canvas.height);
     self.gl.clearColor(clearColor[0],clearColor[1],clearColor[2], 1.0);
-    //self.mvMatrix = makeTranslation(-camera[0], -camera[1], -camera[2]);
+
     self.mvMatrix = makeView(lookAt,camera,up);
-    self.pMatrix = makePerspective(Util.deg2Rad(60),vpCW / self.canvas.clientHeight,1,10000)
+    self.pMatrix = makePerspective(Util.deg2Rad(60),vpCW / self.canvas.clientHeight,0.1,100)
 
     self.gl.enable(self.gl.DEPTH_TEST);
     if (mode<2)
@@ -59,6 +60,14 @@ const makePerspective = function(fieldOfViewInRadians, aspect, near, far){
         0, 0, near * far * rangeInv * 2, 0
     ];
 };
+
+const makeInversePerspective = function(fieldOfViewInRadians, aspect, near, far){
+    var m4 = new THREE.Matrix4();
+    m4.set(makePerspective(fieldOfViewInRadians, aspect, near, far));
+    var nm4 = new THREE.Matrix4();
+    return nm4.getInverse(m4).elements;
+};
+
 const makeView = function(lookAt, camera, up){
     let zaxis = glm.vec3.create();
     glm.vec3.scale(zaxis,lookAt,-1);
@@ -77,6 +86,14 @@ const makeView = function(lookAt, camera, up){
         -glm.vec3.dot(xaxis,camera), -glm.vec3.dot(yaxis,camera), -glm.vec3.dot(zaxis,camera), 1
     ];
 };
+
+const makeInverseView = function(lookAt, camera, up){
+    var m4 = new THREE.Matrix4();
+    m4.set(makeView(lookAt, camera, up));
+    var nm4 = new THREE.Matrix4();
+    return nm4.getInverse(m4).elements;
+};
+
 const makeTranslation = function(tx, ty, tz){
     return [
         1,  0,  0,  0,
@@ -119,6 +136,7 @@ const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={})
         self.ibuf = initBuffer.call(this, self.gl.ELEMENT_ARRAY_BUFFER, idx);
     var cumulative = 0;
     shader.attrs.forEach(attr=>{
+        self.gl.enableVertexAttribArray(shaderProgram[attr.name+'Attrib']);
         self.gl.vertexAttribPointer(shaderProgram[attr.name+'Attrib'], attr.count, self.gl[attr.type], false, shader.total, cumulative);
         cumulative+=(attr.size*attr.count);
     });
@@ -127,12 +145,22 @@ const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={})
     });
 };
 
-const unbindBuffers = function(){
+const unbindBuffers = function(shaderName){
     const self = this._private;
     self.gl.bindBuffer(self.gl.ARRAY_BUFFER, null);
     self.gl.bindBuffer(self.gl.ELEMENT_ARRAY_BUFFER, null);
     self.gl.bindTexture(self.gl.TEXTURE_2D,null);
     self.gl.deleteBuffer(self.vbuf);
+
+    if (typeof shaderName=='string') {
+        var shader = self.shaders[shaderName];
+    }
+    else
+        var shader = shaderName;
+    var shaderProgram = shader.shader;
+    shader.attrs.forEach(attr=> {
+        self.gl.disableVertexAttribArray(shaderProgram[attr.name + 'Attrib']);
+    });
 };
 
 export default class WebGL {
@@ -152,7 +180,7 @@ export default class WebGL {
         if (showFPS) {
             $('body').prepend('<div id="fps" style="position:absolute;width:50px;padding:8px;text-align:center;background-color:rgba(128,128,128,0.5);border:#888 1px solid;font-weight:700;color:#fff;"></div>');
             window.setInterval((function(){
-                document.getElementById('fps').innerHTML = Math.ceil(this._private.fps/2);
+                document.getElementById('fps').innerHTML = Math.ceil(this._private.fps);
                 this._private.fps = 0;
             }).bind(this),1000);
         }
@@ -175,7 +203,7 @@ export default class WebGL {
         attributes.forEach(attr=>{
             total+=(attr.size*attr.count);
             shaderProgram[attr.name+'Attrib'] = self.gl.getAttribLocation(shaderProgram, attr.name);
-            self.gl.enableVertexAttribArray(shaderProgram[attr.name+'Attrib']);
+            //self.gl.enableVertexAttribArray(shaderProgram[attr.name+'Attrib']);
         });
         uniforms.forEach(uniform=>{
             shaderProgram[uniform.name+'Uniform'] = self.gl.getUniformLocation(shaderProgram, uniform.name);
@@ -210,7 +238,7 @@ export default class WebGL {
     renderStart(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0){
         const self = this._private;
         initScene.call(this,camera,lookAt,up,clearColor,mode);
-        if (self.showFPS)
+        if (self.showFPS && mode<2)
             self.fps++;
     }
 
@@ -219,7 +247,7 @@ export default class WebGL {
 
         initBuffers.call(this,shader,vertexBuffer,null,textures,uniforms);
         self.gl.drawArrays(self.gl[primitiveType],offset, primitiveCount);
-        unbindBuffers.call(this);
+        unbindBuffers.call(this,shader);
     }
 }
 export default WebGL;

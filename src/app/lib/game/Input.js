@@ -43,10 +43,16 @@ const GAMEPADAXISMAP = {
     3:'rotateX'
 };
 const GAMEPADBUTTONMAP = {
-    7:'up',
-    6:'down',
-    12:'up',
-    13:'down'
+    6:'up',
+    7:'dig',
+    13:'up',
+    12:'down'
+};
+const ACTIONS = [
+    'dig'
+];
+const MOUSE2ACTION = {
+    0:'dig'
 };
 
 const MOUSE_X_SPEED = 0.3;
@@ -57,7 +63,7 @@ const GAMEPAD_ROTATE_SPEED = 150;
 
 const processGamepadState = ()=>{
     const gp = navigator.getGamepads()[0];
-    const actions = {moveX:0,moveY:0,moveZ:0,rotateX:0,rotateY:0,up:0,down:0,left:0,right:0,forward:0,back:0,turnLeft:0,turnRight:0,turnUp:0,turnDown:0,primary:0};
+    const actions = {moveX:0,moveY:0,moveZ:0,rotateX:0,rotateY:0,up:0,down:0,left:0,right:0,forward:0,back:0,turnLeft:0,turnRight:0,turnUp:0,turnDown:0,primary:0,dig:0};
 
     if (gp && gp.axes)
         gp.axes.forEach((axis,ind)=>{
@@ -74,11 +80,13 @@ const processGamepadState = ()=>{
 };
 
 export default class Input {
-    constructor() {
+    constructor(map,camera,cameraFace) {
         const p = this._private = {
             pointerLocked: false,
             mouseXmoved: 0,
             mouseYmoved: 0,
+            mouseDown:[0,0,0,0,0,0,0,0],
+            mouseActions:[],
             axisStates: [0, 0, 0,0,0,0] // leftright, downup, forwardback
         };
         this.allowPointerLock = true;
@@ -111,6 +119,19 @@ export default class Input {
                 }
             }, false);
         }
+
+        document.addEventListener('mousedown',(e)=>{
+            if (MOUSE2ACTION[e.button] && p.pointerLocked) {
+                p.mouseDown[e.button] = 1;
+                p.mouseActions[MOUSE2ACTION[e.button]] = 1;
+            }
+        },true);
+        document.addEventListener('mouseup',(e)=>{
+            if (MOUSE2ACTION[e.button] && p.pointerLocked) {
+                p.mouseDown[e.button] = 0;
+                p.mouseActions[MOUSE2ACTION[e.button]] = 0;
+            }
+        },true);
 
         document.addEventListener('keydown',(e)=>{
             if (KEYS[e.which||e.keyCode]) {
@@ -150,13 +171,17 @@ export default class Input {
 
         const gp = processGamepadState();
         actions.moveX += (gp.right - gp.left + gp.moveX) * GAMEPAD_MOVE_SPEED * delta;
-        actions.moveY += (gp.down - gp.up + gp.moveY) * GAMEPAD_MOVE_SPEED * delta;
+        actions.moveY += (gp.up - gp.down + gp.moveY) * GAMEPAD_MOVE_SPEED * delta;
         actions.moveZ += (gp.back - gp.forward + gp.moveZ) * GAMEPAD_MOVE_SPEED * delta;
         actions.rotateY += (gp.turnRight - gp.turnLeft + (gp.rotateY*2)) * GAMEPAD_ROTATE_SPEED * delta;
         actions.rotateX += (gp.turnUp - gp.turnDown + gp.rotateX) * GAMEPAD_ROTATE_SPEED * delta;
 
         ['moveX','moveY','moveZ'].forEach(item=>{
             actions[item] = Math.min(1,Math.max(-1,actions[item]));
+        });
+
+        ACTIONS.forEach(action=>{
+            actions[action] = gp[action] || p.mouseActions[action];
         });
 
         return actions;
