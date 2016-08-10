@@ -1,7 +1,38 @@
-# webpack-express-boilerplate
-A boilerplate for running a Webpack workflow in Node express
+# Digger VR
 
-Please read the following article: [The ultimate Webpack setup](http://www.christianalfoni.com/articles/2015_04_19_The-ultimate-webpack-setup) to know more about this boilerplate.
+A browser based 'Minecraft' meets 'Terraria' kind of idea with things like gamepad and VR support thrown in the mix.
 
-## Running it on Nitrous Pro
-Change the `webpack.config.js` entry point: `webpack-dev-server/client?http://localhost:8080` to point to your test server, for example: `webpack-dev-server/client?http://test-103403.nitrousapp.com:3000`.  
+**To run:**
+clone the repo then run:
+
+npm install
+npm start
+
+Navigate to localhost:3000
+  
+**Current working feature set:**
+
++ Movement, 'stepping' and jumping
++ Collision detection
++ Single block digging
++ Grass / Dirt / Rocks - block types
++ World edges work, but will fall through bottom
++ World size upto 256 x 256 x 256 (currently set to 64 for testing)
++ Mouse and keyboard support
++ Gamepad / Controller support
++ Google cardboard with head tracking support
+(Runs in VR mode automatically if on a device with direction sensor)
+(You will need a controller to move while in VR mode)
+
+**Roadmap:**
+
++ ~~Cardboard barrel distorion~~
++ Impenetrable blocks at bottom of map
++ Perform 'area' directional digging if hold down dig button
++ Support upto 2048 maps (more than 512 will probably wreck a browser though)
++ Map generation progress indicator
++ Saving and loading of maps to a server
++ Keeping map changes (digging) in sync with a server
++ Block placement
+
++ More to be decided on...
