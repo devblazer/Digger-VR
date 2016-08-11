@@ -33,6 +33,10 @@ Navigate to localhost:3000
 + Map generation progress indicator
 + Saving and loading of maps to a server
 + Keeping map changes (digging) in sync with a server
++ Add switch between torch/pickaxe
++ Turn god lighting into sun lighting
++ Add rudimentary diffuse lighting
++ Add torch placement
 + Block placement
 
 + More to be decided on...
