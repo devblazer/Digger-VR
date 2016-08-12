@@ -21,8 +21,8 @@ else
 function run() {
     const webGL = new WebGL(true);
 
-    const VIEW_DISTANCE = 23;
-    const mapSize = 32;
+    const VIEW_DISTANCE = 30;
+    const mapSize = 64;
     const camera = glm.vec3.fromValues(mapSize / 2, mapSize - 5, mapSize / 2);
 
     const fog_sky_color = [0.3, 0.65, 1.0];
@@ -42,7 +42,7 @@ function run() {
     let lastDig = 0;
     let wasDigging = false;
 
-    const TEX_DATA_WIDTH = 512;
+    const TEX_DATA_WIDTH = 1024;
 
     const vertexIndexTracker = new Float32Array(TEX_DATA_WIDTH*TEX_DATA_WIDTH);
     for (let n=0;n<TEX_DATA_WIDTH*TEX_DATA_WIDTH;n++)
@@ -372,7 +372,7 @@ function run() {
             var highestY = 0;
             for (var x = Math.floor(pos.x - SELF_COL_RADIUS); x <= Math.floor(pos.x + SELF_COL_RADIUS); x++) {
                 if (x!=pos.x+SELF_COL_RADIUS) {
-                    for (var y = Math.floor(pos.y) - SELF_EYE_HEIGHT; y <= Math.floor(pos.y) - SELF_EYE_HEIGHT+1; y++) {
+                    for (var y = Math.floor(pos.y - SELF_EYE_HEIGHT); y <= Math.floor(pos.y - SELF_EYE_HEIGHT+1); y++) {
                         for (var z = Math.floor(pos.z - SELF_COL_RADIUS); z <= Math.floor(pos.z + SELF_COL_RADIUS); z++) {
                             if (z!=pos.z+SELF_COL_RADIUS && map.get(x, y, z)) {
                                 highestY = Math.max(highestY, y);
@@ -405,6 +405,11 @@ function run() {
                 pos.y = lowestY - SELF_COL_HEIGHT + SELF_EYE_HEIGHT;
                 yVelocity = movement.y/-2;
             }
+        }
+        if (pos.y<=1+SELF_EYE_HEIGHT) {
+            pos.y = 1 + SELF_EYE_HEIGHT;
+            canJump = true;
+            yVelocity = 0;
         }
         // check step
         if (!yVelocity) {
@@ -462,8 +467,11 @@ function run() {
             while ((new Date()).getTime() - lastDig >= (DIG_RATE*1000)) {
                 lastDig += (DIG_RATE*1000);
                 let res = map.findIntersect(camera,cameraFace,4);
-                if (res)
-                    map.set(res[0],res[1],res[2],false);
+                if (res) {
+                    let block = map.get(res[0], res[1], res[2]);
+                    if (block && block != 4)
+                        map.set(res[0], res[1], res[2], false);
+                }
             }
         }
         else

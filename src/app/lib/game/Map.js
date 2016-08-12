@@ -3,7 +3,7 @@ import Plot from './Plot.js';
 import glm from 'gl-matrix';
 import Util from './../Util.js';
 
-const SECTOR_CACHE_LIMIT = 200;
+const SECTOR_CACHE_LIMIT = 400;
 const TYPE_BUFFER_SIZE = {
     empty: 0,
     dirt:1000000,

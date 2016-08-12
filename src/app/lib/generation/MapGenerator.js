@@ -1,5 +1,6 @@
 import Util from './../Util.js';
 
+const TILE_INDEX_IMPENETRABLE = 4;
 const TILE_INDEX_STONE = 3;
 const TILE_INDEX_GRASS = 2;
 const TILE_INDEX_DIRT = 1;
@@ -24,13 +25,13 @@ export default class MapGenerator {
         if (p.size<64)
             tunnels = 5;
         else if (p.size<128)
-            tunnels = 25;
+            tunnels = 15;
         else if (p.size<256)
-            tunnels = 150;
+            tunnels = 35;
         else if (p.size<512)
-            tunnels = 1000;
+            tunnels = 125;
         else
-            tunnels = 6000;
+            tunnels = 375;
 
         let lastP = -1;
 
@@ -41,6 +42,10 @@ export default class MapGenerator {
             lastP = newP;
             this.tunnelNetwork(null,skyRows+2,null,0,TILE_INDEX_EMPTY);
         }
+
+        this.addFloor();
+//        p.map.fill(0,3,0,false,32,25,32);
+
         const buildTime = ((new Date()).getTime()-startTime)/1000;
         const ret = this.report();
         console.log('finished build in '+(Math.floor(buildTime/60)?Math.floor(buildTime/60):'0')+':'+(buildTime%60<10?'0':'')+Math.floor(buildTime%60));
@@ -95,6 +100,12 @@ export default class MapGenerator {
         p.map.fill(0,p.size-skyRows,0,TILE_INDEX_EMPTY,p.size,skyRows,p.size);
         p.map.fill(0,p.size-skyRows-1,0,TILE_INDEX_GRASS,p.size,1,p.size);
         p.map.fill(0,0,0,TILE_INDEX_DIRT,p.size,p.size-skyRows-1,p.size);
+    }
+
+    addFloor(){
+        const p = this._private;
+
+        p.map.fill(0,0,0,TILE_INDEX_IMPENETRABLE,p.size,1,p.size);
     }
 
     minerals(skyRows=8,type=3,ratio=0.5) {

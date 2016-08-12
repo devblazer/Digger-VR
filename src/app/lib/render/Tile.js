@@ -63,15 +63,16 @@ const FACE_TILE_ADDITION = [
 const POINT_SIZE = 4;
 const FACE_SIZE = 24;
 
-const TILE_TEX_IND = ['','dirt','grassEdge','grass','stone'];
+const TILE_TEX_IND = ['','dirt','grassEdge','grass','stone','impenetrable'];
 
 const FACE2SIDE = [1,2,1,1,0,1];
-const TILES = ['empty','dirt','grass','stone'];
+const TILES = ['empty','dirt','grass','stone','impenetrable'];
 const TILE_TEX_RENDER = [
     [0,0,0],
     [1,1,1],
     [3,2,1],
-    [4,4,4]
+    [4,4,4],
+    [5,5,5]
 ];
 let rx = 10;
 let fcnt = 0;
