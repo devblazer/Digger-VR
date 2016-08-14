@@ -16,7 +16,7 @@ Navigate to localhost:3000
 + Collision detection
 + Digging
 + Grass / Dirt / Rocks - block types
-+ World edges work, but will fall through bottom
++ World edges work fixed, except for top
 + World size upto 1024 x 1024 x 1024 (currently set to 64 for testing)
 + Mouse and keyboard support
 + Gamepad / Controller support

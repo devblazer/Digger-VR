@@ -22,7 +22,7 @@ function run() {
     const webGL = new WebGL(true);
 
     const VIEW_DISTANCE = 30;
-    const mapSize = 32;
+    const mapSize = 64;
     const camera = glm.vec3.fromValues(mapSize / 2, mapSize - 5, mapSize / 2);
 
     const fog_sky_color = [0.3, 0.65, 1.0];
