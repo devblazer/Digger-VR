@@ -26,17 +26,24 @@ Navigate to localhost:3000
 
 **Roadmap:**
 
-+ ~~Cardboard barrel distorion~~
-+ Impenetrable blocks at bottom of map
++ ~~Cardboard barrel distortion~~
++ ~~Impenetrable blocks at bottom of map~~
 + Perform 'area' directional digging if hold down dig button
 + Support upto 2048 maps (more than 512 will probably wreck a browser though)
 + Map generation progress indicator
 + Saving and loading of maps to a server
 + Keeping map changes (digging) in sync with a server
+
++ Code refactor
++ Unit tests
+
++ Block break strength
 + Add switch between torch/pickaxe
 + Turn god lighting into sun lighting
 + Add rudimentary diffuse lighting
 + Add torch placement
 + Block placement
+
++ UI + menu
 
 + More to be decided on...

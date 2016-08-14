@@ -12,6 +12,8 @@ const UID_CHARS = 'abcdefghijklmnopqrstuvwxyz01234567890'.split('');
 var lastPerf = 0;
 var perfTypes = [];
 var debugReady = false;
+var postLogIndex = [];
+var postLogItems = [];
 
 export default {
     randomWeighted(num, exp) {
@@ -39,8 +41,8 @@ export default {
     objDistance(obj1,obj2) {
         return Math.sqrt(Math.pow(obj2.x-obj1.x,2) + Math.pow(obj2.y-obj1.y,2));
     },
-    distance(x1,y1,x2,y2) {
-        return Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
+    distance(x1,y1,z1,x2,y2,z2) {
+        return Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2) + Math.pow(z2-z1,2));
     },
     deg2Rad(deg){
         return deg * RAD;
@@ -112,5 +114,26 @@ export default {
         let z = 1-(2*(Math.pow(s1,2)+Math.pow(s2,2)));
 
         return [x,y,z];
+    },
+    postLogStart(type=null){
+        if (type){
+            postLogIndex = [type];
+            postLogItems[type] = [];
+        }
+        else {
+            postLogIndex = [];
+            postLogItems = [];
+        }
+    },
+    postLog(item,type='default'){
+        if (!postLogItems[type])
+            postLogItems[type] = [];
+        postLogItems[type].push(item);
+    },
+    postLogOutput(type='default'){
+        if(postLogItems[type])
+            postLogItems[type].forEach(item=>{
+                console.log(item);
+            });
     }
 };

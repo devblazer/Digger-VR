@@ -22,7 +22,7 @@ function run() {
     const webGL = new WebGL(true);
 
     const VIEW_DISTANCE = 30;
-    const mapSize = 64;
+    const mapSize = 32;
     const camera = glm.vec3.fromValues(mapSize / 2, mapSize - 5, mapSize / 2);
 
     const fog_sky_color = [0.3, 0.65, 1.0];
@@ -34,15 +34,44 @@ function run() {
     const SELF_EYE_HEIGHT = 2;
 
     const GRAVITY = 0.5;
+    let gravityStarted = false;
     const JUMP_VELOCITY = 10;
     const MAX_FALL_SPEED = 18;
     const MOVE_SPEED = 1.6;
 
     const DIG_RATE = 0.4;
     let lastDig = 0;
+    let continuousDigging = false;
     let wasDigging = false;
 
     const TEX_DATA_WIDTH = 1024;
+
+    const MASS_DIG_FACES = [
+        [
+            [SELF_COL_RADIUS/-2,-SELF_EYE_HEIGHT+0.4,-SELF_COL_RADIUS],
+            [SELF_COL_RADIUS/-2,SELF_COL_HEIGHT-SELF_EYE_HEIGHT+0.4,SELF_COL_RADIUS]
+        ],
+        [
+            [-SELF_COL_RADIUS,0,-SELF_COL_RADIUS],
+            [SELF_COL_RADIUS,0,SELF_COL_RADIUS]
+        ],
+        [
+            [-SELF_COL_RADIUS,-SELF_EYE_HEIGHT+0.4,SELF_COL_RADIUS/-2],
+            [SELF_COL_RADIUS,SELF_COL_HEIGHT-SELF_EYE_HEIGHT+0.4,SELF_COL_RADIUS/-2]
+        ],
+        [
+            [SELF_COL_RADIUS/2,-SELF_EYE_HEIGHT+0.4,-SELF_COL_RADIUS],
+            [SELF_COL_RADIUS/2,SELF_COL_HEIGHT-SELF_EYE_HEIGHT+0.4,SELF_COL_RADIUS]
+        ],
+        [
+            [-SELF_COL_RADIUS,0,-SELF_COL_RADIUS],
+            [SELF_COL_RADIUS,0,SELF_COL_RADIUS]
+        ],
+        [
+            [-SELF_COL_RADIUS,-SELF_EYE_HEIGHT+0.4,SELF_COL_RADIUS/2],
+            [SELF_COL_RADIUS,SELF_COL_HEIGHT-SELF_EYE_HEIGHT+0.4,SELF_COL_RADIUS/2]
+        ]
+    ];
 
     const vertexIndexTracker = new Float32Array(TEX_DATA_WIDTH*TEX_DATA_WIDTH);
     for (let n=0;n<TEX_DATA_WIDTH*TEX_DATA_WIDTH;n++)
@@ -238,7 +267,9 @@ function run() {
     let tex = GL.createTexture();
 
     render();
-
+    window.setTimeout(function() {
+        console.log(camera);
+    },2000);
     function step(delta) {
 
         let actions = input.getAllActions(delta);
@@ -268,7 +299,8 @@ function run() {
         glm.vec3.normalize(cameraRight, cameraRight);
         glm.vec3.cross(cameraForward, cameraRight, cameraUp);
 
-        yVelocity = Math.max(-MAX_FALL_SPEED, yVelocity - GRAVITY);
+        //if (gravityStarted)
+            yVelocity = Math.max(-MAX_FALL_SPEED, yVelocity - GRAVITY);
 
         let posOld = new glm.vec3.fromValues(0,0,0);
         glm.vec3.copy(posOld,camera);
@@ -304,15 +336,18 @@ function run() {
             var minorX = 1000000;
             var x = Math.floor(pos.x + SELF_COL_RADIUS);
             for (var y = Math.floor(oldy-SELF_EYE_HEIGHT); y <= Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
-                if (y!=oldy-SELF_EYE_HEIGHT) {
-                    for (var z = Math.floor(oldz - SELF_COL_RADIUS); z <= Math.floor(oldz + SELF_COL_RADIUS); z++) {
-                        if (z!=oldz+SELF_COL_RADIUS && map.get(x, y, z)) {
-                            minorX = Math.min(minorX, x);
-                        }
+                for (var z = Math.floor(oldz - SELF_COL_RADIUS); z <= Math.floor(oldz + SELF_COL_RADIUS); z++) {
+                    if (z!=oldz+SELF_COL_RADIUS && map.get(x, y, z)) {
+                        minorX = Math.min(minorX, x);
                     }
                 }
             }
             if (minorX != 1000000) {
+                console.log(camera);
+                console.log(x);
+                console.log(Math.floor(oldy-SELF_EYE_HEIGHT),Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT));
+                console.log(Math.floor(oldz - SELF_COL_RADIUS),Math.floor(oldz + SELF_COL_RADIUS));
+                console.log('collide x+');
                 pos.x = minorX - SELF_COL_RADIUS;
             }
         }
@@ -321,15 +356,14 @@ function run() {
             var minorX = -1000000;
             var x = Math.floor(pos.x - SELF_COL_RADIUS);
             for (var y = Math.floor(oldy-SELF_EYE_HEIGHT); y <= Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
-                if (y!=oldy-SELF_EYE_HEIGHT) {
-                    for (var z = Math.floor(oldz - SELF_COL_RADIUS); z <= Math.floor(oldz + SELF_COL_RADIUS); z++) {
-                        if (z!=oldz+SELF_COL_RADIUS&& map.get(x, y, z)) {
-                            minorX = Math.max(minorX, x);
-                        }
+                for (var z = Math.floor(oldz - SELF_COL_RADIUS); z <= Math.floor(oldz + SELF_COL_RADIUS); z++) {
+                    if (z!=oldz+SELF_COL_RADIUS&& map.get(x, y, z)) {
+                        minorX = Math.max(minorX, x);
                     }
                 }
             }
             if (minorX != -1000000) {
+                console.log('collide x-');
                 pos.x = minorX + 1 + SELF_COL_RADIUS;
             }
         }
@@ -338,15 +372,14 @@ function run() {
             var minorZ = 1000000;
             var z = Math.floor(pos.z + SELF_COL_RADIUS);
             for (var y = Math.floor(oldy-SELF_EYE_HEIGHT); y <= Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
-                if (y!=oldy-SELF_EYE_HEIGHT) {
-                    for (var x = Math.floor(pos.x - SELF_COL_RADIUS); x <= Math.floor(pos.x + SELF_COL_RADIUS); x++) {
-                        if (x!=pos.x+SELF_COL_RADIUS && map.get(x, y, z)) {
-                            minorZ = Math.min(minorZ, z);
-                        }
+                for (var x = Math.floor(pos.x - SELF_COL_RADIUS); x <= Math.floor(pos.x + SELF_COL_RADIUS); x++) {
+                    if (x!=pos.x+SELF_COL_RADIUS && map.get(x, y, z)) {
+                        minorZ = Math.min(minorZ, z);
                     }
                 }
             }
             if (minorZ != 1000000) {
+                console.log('collide z+');
                 pos.z = minorZ - SELF_COL_RADIUS;
             }
         }
@@ -355,34 +388,35 @@ function run() {
             var minorZ = -1000000;
             var z = Math.floor(pos.z - SELF_COL_RADIUS);
             for (var y = Math.floor(oldy-SELF_EYE_HEIGHT); y <= Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
-                if (y!=oldy-SELF_EYE_HEIGHT) {
-                    for (var x = Math.floor(pos.x - SELF_COL_RADIUS); x <= Math.floor(pos.x + SELF_COL_RADIUS); x++) {
-                        if (x!=pos.x+SELF_COL_RADIUS && map.get(x, y, z)) {
-                            minorZ = Math.max(minorZ, z);
-                        }
+                for (var x = Math.floor(pos.x - SELF_COL_RADIUS); x <= Math.floor(pos.x + SELF_COL_RADIUS); x++) {
+                    if (x!=pos.x+SELF_COL_RADIUS && map.get(x, y, z)) {
+                        minorZ = Math.max(minorZ, z);
                     }
                 }
             }
             if (minorZ != -1000000) {
+                console.log('collide z-');
                 pos.z = minorZ + 1 + SELF_COL_RADIUS;
             }
         }
         // check bottom
-        if (movement.y<0) {
+        if (movement.y<=0) {
             var highestY = 0;
+            //gravityStarted = true;
             for (var x = Math.floor(pos.x - SELF_COL_RADIUS); x <= Math.floor(pos.x + SELF_COL_RADIUS); x++) {
                 if (x!=pos.x+SELF_COL_RADIUS) {
                     for (var y = Math.floor(pos.y - SELF_EYE_HEIGHT); y <= Math.floor(pos.y - SELF_EYE_HEIGHT+1); y++) {
                         for (var z = Math.floor(pos.z - SELF_COL_RADIUS); z <= Math.floor(pos.z + SELF_COL_RADIUS); z++) {
                             if (z!=pos.z+SELF_COL_RADIUS && map.get(x, y, z)) {
                                 highestY = Math.max(highestY, y);
+                                //gravityStarted = false;
                             }
                         }
                     }
                 }
             }
-            if (highestY != 0) {
-                pos.y = highestY + SELF_EYE_HEIGHT+1;
+            if (highestY != 0){//} && Math.floor(highestY + SELF_EYE_HEIGHT+1) - pos.y < 1) {
+                pos.y = Math.floor(highestY + SELF_EYE_HEIGHT+1);
                 canJump = true;
                 yVelocity = 0;
             }
@@ -411,6 +445,8 @@ function run() {
             canJump = true;
             yVelocity = 0;
         }
+        //if (yVelocity)
+          //  gravityStarted = true;
         // check step
         if (!yVelocity) {
             var hasBottom = false;
@@ -424,7 +460,7 @@ function run() {
             }
             var hasTop = false;
             for (var x = Math.floor(pos.x- SELF_COL_RADIUS - 0.00001); x <= Math.floor(pos.x + SELF_COL_RADIUS + 0.00001); x++) {
-                for (var y = Math.floor(pos.y - 0.99999); y <= Math.floor(pos.y + 1.99999); y++) {
+                for (var y = Math.floor(pos.y - SELF_EYE_HEIGHT+1); y <= Math.floor(pos.y - SELF_EYE_HEIGHT+1+SELF_COL_HEIGHT); y++) {
                     for (var z = Math.floor(pos.z- SELF_COL_RADIUS - 0.00001); z <= Math.floor(pos.z + SELF_COL_RADIUS + 0.00001); z++) {
                         if (map.get(x, y, z)) {
                             hasTop = true;
@@ -433,6 +469,21 @@ function run() {
                 }
             }
             if (hasBottom && !hasTop) {
+                console.log('step');
+                console.log(camera);
+                console.log(Math.floor(pos.x- SELF_COL_RADIUS - 0.00001),Math.floor(pos.x + SELF_COL_RADIUS + 0.00001));
+                console.log(Math.floor(pos.y + 0.99999),Math.floor(pos.y + 1.99999));
+                console.log(Math.floor(pos.z- SELF_COL_RADIUS - 0.00001),Math.floor(pos.z + SELF_COL_RADIUS + 0.00001));
+                for (var x = Math.floor(pos.x- SELF_COL_RADIUS - 0.00001); x <= Math.floor(pos.x + SELF_COL_RADIUS + 0.00001); x++) {
+                    for (var y = Math.floor(pos.y + 0.99999); y <= Math.floor(pos.y + 1.99999); y++) {
+                        for (var z = Math.floor(pos.z- SELF_COL_RADIUS - 0.00001); z <= Math.floor(pos.z + SELF_COL_RADIUS + 0.00001); z++) {
+                            if (map.get(x, y, z)) {
+                                console.log(x,y,z);
+                            }
+                        }
+                    }
+                }
+
                 pos.y += 1;
                 var xdiff = Math.abs(pos.x-(hasBottom.x+0.5));
                 var zdiff = Math.abs(pos.z-(hasBottom.z+0.5));
@@ -464,20 +515,59 @@ function run() {
                 wasDigging = true;
                 lastDig = Math.max(lastDig,(new Date()).getTime()-(DIG_RATE*1000));
             }
+            let digDirection = false;
+
             while ((new Date()).getTime() - lastDig >= (DIG_RATE*1000)) {
                 lastDig += (DIG_RATE*1000);
-                let res = map.findIntersect(camera,cameraFace,4);
-                if (res) {
-                    let block = map.get(res[0], res[1], res[2]);
-                    if (block && block != 4)
-                        map.set(res[0], res[1], res[2], false);
+                let res = [];
+
+                if (!continuousDigging)
+                    res.push(map.findIntersect(camera,cameraFace,4));
+                else {
+                    if (!digDirection) {
+                        let largestInd = false;
+                        let largestDist = 0;
+                        cameraFace.forEach((dist,ind)=>{
+                            if (dist * Math.sign(dist) * (ind==1?0.5:1) > largestDist) {
+                                largestDist = dist * Math.sign(dist) * (ind==1?0.5:1);
+                                largestInd = ind;
+                            }
+                        });
+                        digDirection = MASS_DIG_FACES[largestInd + (cameraFace[largestInd]>=0?3:0)];
+                    }
+                    for (let x=digDirection[0][0]; x<=digDirection[1][0]+0.0001; x+=Math.max(0.1,(digDirection[1][0]-digDirection[0][0])/2))
+                        for (let y=digDirection[0][1]; y<=digDirection[1][1]+0.0001; y+=Math.max(0.1,(digDirection[1][1]-digDirection[0][1])/3)) {
+                            for (let z=digDirection[0][2]; z<=digDirection[1][2]+0.0001; z+=Math.max(0.1,(digDirection[1][2]-digDirection[0][2])/2)) {
+                                res.push(map.findIntersect([camera[0] + x, camera[1] + y, camera[2] + z], cameraFace, 4));
+                            }
+                        }
                 }
+
+                if (res) {
+                    let closestPoint = false;
+                    let closestDist = 1000000;
+                    res.forEach((point,ind)=>{
+                        if (point) {
+                            let dist = Util.distance(camera[0],camera[1],camera[2],point[0],point[1],point[2]);
+                            if (dist < closestDist) {
+                                closestDist = dist;
+                                closestPoint = res[ind];
+                            }
+                        }
+                    });
+                    if (closestPoint) {
+                        let block = map.get(closestPoint[0], closestPoint[1], closestPoint[2]);
+                        if (block && block != 4)
+                            map.set(closestPoint[0], closestPoint[1], closestPoint[2], false);
+                    }
+                }
+                continuousDigging = true;
             }
         }
-        else
+        else {
             wasDigging = false;
-
-        //storage.step(delta);
+            continuousDigging = false;
+        }
     }
 }
 
