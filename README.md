@@ -14,10 +14,10 @@ Navigate to localhost:3000
 
 + Movement, 'stepping' and jumping
 + Collision detection
-+ Single block digging
++ Digging
 + Grass / Dirt / Rocks - block types
 + World edges work, but will fall through bottom
-+ World size upto 256 x 256 x 256 (currently set to 64 for testing)
++ World size upto 1024 x 1024 x 1024 (currently set to 64 for testing)
 + Mouse and keyboard support
 + Gamepad / Controller support
 + Google cardboard with head tracking support
@@ -28,8 +28,8 @@ Navigate to localhost:3000
 
 + ~~Cardboard barrel distortion~~
 + ~~Impenetrable blocks at bottom of map~~
-+ Perform 'area' directional digging if hold down dig button
-+ Support upto 2048 maps (more than 512 will probably wreck a browser though)
++ ~~Perform 'area' directional digging if hold down dig button~~
++ ~~Support upto 2048 maps (browser cant handle more than 1024)~~
 + Map generation progress indicator
 + Saving and loading of maps to a server
 + Keeping map changes (digging) in sync with a server
@@ -37,6 +37,7 @@ Navigate to localhost:3000
 + Code refactor
 + Unit tests
 
++ Add camera tilt for VR mode
 + Block break strength
 + Add switch between torch/pickaxe
 + Turn god lighting into sun lighting

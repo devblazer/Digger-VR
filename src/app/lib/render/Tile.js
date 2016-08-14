@@ -91,11 +91,25 @@ export default class Tile {
                     //for (let n=0;n<6;n++) {
                     fcnt += 5;
                     //let n = 1;
-                    buffer.push(x + sx + FACE_TILE_ADDITION[face][0]*(size-1));
-                    buffer.push(y + sy + FACE_TILE_ADDITION[face][1]*(size-1));
-                    buffer.push(z + sz + FACE_TILE_ADDITION[face][2]*(size-1));
-                    buffer.push(face);
-                    buffer.push(type-1);
+                    let fx = x + sx + FACE_TILE_ADDITION[face][0]*(size-1);
+                    let fy = y + sy + FACE_TILE_ADDITION[face][1]*(size-1);
+                    let fz = z + sz + FACE_TILE_ADDITION[face][2]*(size-1);
+
+                    buffer.push(fx % 128);
+                    buffer.push(fy % 128);
+                    buffer.push(fz % 128);
+                    buffer.push(
+                        Math.floor(fx / 128) +
+                        (Math.floor(fy / 128) * 8) +
+                        ((face % 2) * 64)
+                    );
+                    buffer.push(
+                        Math.floor(fz / 128) +
+                        (Math.floor(face / 2)*16)
+                    );
+                    buffer.push(
+                        (type - 1)
+                    );
                     //}
                 }
             }

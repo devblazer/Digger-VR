@@ -1,4 +1,5 @@
 precision highp float;
+precision highp int;
 
 attribute float a_index;
 
@@ -39,6 +40,10 @@ float getDataPoint(float ind, float width, sampler2D tex) {
     return floor((ret*256.0)+0.5);
 }
 
+float bits(float number, float bitOffset, float bitCount) {
+    return floor(mod(number, pow(2.0, bitOffset+bitCount)) / pow(2.0, bitOffset));
+}
+
 float testValue(float val,float match) {
     return max(0.0,val-(match-1.0)) * max(0.0,(match+1.0)-val);
 }
@@ -50,14 +55,22 @@ float testValue(float val,float match) {
 void main(void) {
     float c_index = a_index*1024.0;
 
+    float dataUnitSize = 6.0;
+    float d0 = getDataPoint(floor(c_index/6.0)*dataUnitSize,u_texDataWidth,tex31);
+    float d1 = getDataPoint((floor(c_index/6.0)*dataUnitSize)+1.0,u_texDataWidth,tex31);
+    float d2 = getDataPoint((floor(c_index/6.0)*dataUnitSize)+2.0,u_texDataWidth,tex31);
+    float d3 = getDataPoint((floor(c_index/6.0)*dataUnitSize)+3.0,u_texDataWidth,tex31);
+    float d4 = getDataPoint((floor(c_index/6.0)*dataUnitSize)+4.0,u_texDataWidth,tex31);
+    float d5 = getDataPoint((floor(c_index/6.0)*dataUnitSize)+5.0,u_texDataWidth,tex31);
+
     vec4 a_position = vec4(
-        getDataPoint(floor(c_index/6.0)*5.0,u_texDataWidth,tex31),
-        getDataPoint((floor(c_index/6.0)*5.0)+1.0,u_texDataWidth,tex31),
-        getDataPoint((floor(c_index/6.0)*5.0)+2.0,u_texDataWidth,tex31),
-        getDataPoint((floor(c_index/6.0)*5.0)+3.0,u_texDataWidth,tex31)
+        bits(d0,0.0,7.0)+(bits(d3,0.0,3.0)*128.0),
+        bits(d1,0.0,7.0)+(bits(d3,3.0,3.0)*128.0),
+        bits(d2,0.0,7.0)+(bits(d4,0.0,3.0)*128.0),
+        bits(d3,6.0,1.0)+(bits(d4,4.0,2.0)*2.0)
     );
     float a_size = 1.0;
-    float v_texInd = getDataPoint((floor(c_index/6.0)*5.0)+4.0,u_texDataWidth,tex31);
+    float v_texInd = bits(d5,0.0,7.0);
 
     int basePoint = int(a_position.w*18.0)+int(mod(c_index,6.0)*3.0);
     a_position.x += u_cubePositions[basePoint+0] * a_size;

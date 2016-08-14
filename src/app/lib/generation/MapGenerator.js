@@ -84,7 +84,7 @@ export default class MapGenerator {
                             }
                         }
                     }
-                    if (z==p.size-1)
+                    if (z==(p.size/8)-1)
                         sky += (8 * 8 * 8) - notEmptyTiles;
                     else
                         cave += (8 * 8 * 8) - notEmptyTiles;

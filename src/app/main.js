@@ -34,7 +34,6 @@ function run() {
     const SELF_EYE_HEIGHT = 2;
 
     const GRAVITY = 0.5;
-    let gravityStarted = false;
     const JUMP_VELOCITY = 10;
     const MAX_FALL_SPEED = 18;
     const MOVE_SPEED = 1.6;
@@ -230,7 +229,7 @@ function run() {
             GL.bindTexture(GL.TEXTURE_2D, tex);
             GL.uniform1i(GL.getUniformLocation(myShader.shader, 'tex31'), 31);
 
-            webGL.render(myShader, 'TRIANGLES', vertexIndexTracker, cnt/5*6, 0, ['blocks'], {
+            webGL.render(myShader, 'TRIANGLES', vertexIndexTracker, cnt/(6)*6, 0, ['blocks'], {
                 u_camera_face: cameraFace,
                 u_camera: camera,
                 u_height: depthRatio
@@ -267,9 +266,7 @@ function run() {
     let tex = GL.createTexture();
 
     render();
-    window.setTimeout(function() {
-        console.log(camera);
-    },2000);
+
     function step(delta) {
 
         let actions = input.getAllActions(delta);
@@ -343,11 +340,6 @@ function run() {
                 }
             }
             if (minorX != 1000000) {
-                console.log(camera);
-                console.log(x);
-                console.log(Math.floor(oldy-SELF_EYE_HEIGHT),Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT));
-                console.log(Math.floor(oldz - SELF_COL_RADIUS),Math.floor(oldz + SELF_COL_RADIUS));
-                console.log('collide x+');
                 pos.x = minorX - SELF_COL_RADIUS;
             }
         }
@@ -363,7 +355,6 @@ function run() {
                 }
             }
             if (minorX != -1000000) {
-                console.log('collide x-');
                 pos.x = minorX + 1 + SELF_COL_RADIUS;
             }
         }
@@ -379,7 +370,6 @@ function run() {
                 }
             }
             if (minorZ != 1000000) {
-                console.log('collide z+');
                 pos.z = minorZ - SELF_COL_RADIUS;
             }
         }
@@ -395,7 +385,6 @@ function run() {
                 }
             }
             if (minorZ != -1000000) {
-                console.log('collide z-');
                 pos.z = minorZ + 1 + SELF_COL_RADIUS;
             }
         }
@@ -469,21 +458,6 @@ function run() {
                 }
             }
             if (hasBottom && !hasTop) {
-                console.log('step');
-                console.log(camera);
-                console.log(Math.floor(pos.x- SELF_COL_RADIUS - 0.00001),Math.floor(pos.x + SELF_COL_RADIUS + 0.00001));
-                console.log(Math.floor(pos.y + 0.99999),Math.floor(pos.y + 1.99999));
-                console.log(Math.floor(pos.z- SELF_COL_RADIUS - 0.00001),Math.floor(pos.z + SELF_COL_RADIUS + 0.00001));
-                for (var x = Math.floor(pos.x- SELF_COL_RADIUS - 0.00001); x <= Math.floor(pos.x + SELF_COL_RADIUS + 0.00001); x++) {
-                    for (var y = Math.floor(pos.y + 0.99999); y <= Math.floor(pos.y + 1.99999); y++) {
-                        for (var z = Math.floor(pos.z- SELF_COL_RADIUS - 0.00001); z <= Math.floor(pos.z + SELF_COL_RADIUS + 0.00001); z++) {
-                            if (map.get(x, y, z)) {
-                                console.log(x,y,z);
-                            }
-                        }
-                    }
-                }
-
                 pos.y += 1;
                 var xdiff = Math.abs(pos.x-(hasBottom.x+0.5));
                 var zdiff = Math.abs(pos.z-(hasBottom.z+0.5));
