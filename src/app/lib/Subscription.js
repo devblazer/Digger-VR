@@ -5,7 +5,7 @@ export default class Subscription {
         }
     }
 
-    subscribe(eventType,callback,args){
+    subscribe(eventType,callback,args=null){
         const me = this;
         const p = this._private;
         if (!p.events[eventType])
@@ -21,11 +21,11 @@ export default class Subscription {
         this._private.events[eventType] = [];
     }
 
-    trigger(eventType){
+    trigger(eventType,args=null){
         const p = this._private;
         if (p.events[eventType])
             p.events[eventType].forEach(subscription=>{
-                subscription.callback(args);
+                subscription.callback(args?args:eventType,subscription.args);
             });
     }
 }

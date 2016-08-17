@@ -205,6 +205,7 @@ export default class WebGL {
             textures:[],
             showFPS,
             fps:0,
+            dataTextures:{},
             canvas: document.createElement('canvas')
         };
         if (showFPS) {
@@ -263,6 +264,39 @@ export default class WebGL {
         };
         tex.image.src = src;
         self.textures[name] = tex;
+    }
+
+    createDataTexture(name,size){
+        const p = this._private;
+
+        p.dataTextures[name] = {
+            tex: p.gl.createTexture(),
+            name: name,
+            size: size,
+            buf: new Uint8Array(size * size)
+        };
+
+        return p.dataTextures[name].buf;
+    }
+    updateDataTexture(name){
+        const p = this._private;
+        const dataTex = p.dataTextures[name];
+        const GL = p.gl;
+
+        GL.bindTexture(GL.TEXTURE_2D,dataTex.tex);
+        GL.texImage2D(GL.TEXTURE_2D,0,GL.LUMINANCE,dataTex.size,dataTex.size,0,GL.LUMINANCE,GL.UNSIGNED_BYTE, dataTex.buf);
+        GL.texParameteri(GL.TEXTURE_2D,GL.TEXTURE_MAG_FILTER,GL.NEAREST);
+        GL.texParameteri(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER,GL.NEAREST);
+        GL.bindTexture(GL.TEXTURE_2D,null);
+    }
+    attachDataTexture(name,shader,index){
+        const p = this._private;
+        const dataTex = p.dataTextures[name];
+        const GL = p.gl;
+
+        GL.activeTexture(GL['TEXTURE'+index]);
+        GL.bindTexture(GL.TEXTURE_2D, dataTex.tex);
+        GL.uniform1i(GL.getUniformLocation(shader, 'tex'+index), index);
     }
 
     renderStart(camera,lookAt,up,clearColor=[0.0,0.0,0.0],mode=0,renderTargetMetrics=null){
@@ -351,19 +385,6 @@ export default class WebGL {
             ret.push(positions2[(n*3)+1]);
             ret.push(uvs2[n*2]);
             ret.push(uvs2[(n*2)+1]);
-/*            if (c==61) {
-                ret.push(positions2[n*3]);
-                ret.push(positions2[(n*3)+1]);
-                ret.push(uvs2[n*2]);
-                ret.push(uvs2[(n*2)+1]);
-
-                ret.push(positions2[(n+1)*3]);
-                ret.push(positions2[((n+1)*3)+1]);
-                ret.push(uvs2[(n+1)*2]);
-                ret.push(uvs2[((n+1)*2)+1]);
-
-                c=0;
-            }*/
         }
         if (!window.first) {
             console.log(positions);

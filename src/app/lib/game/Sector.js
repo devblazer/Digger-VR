@@ -27,10 +27,8 @@ const checkFace = (x,y,z,s,dir,map)=>{
         for (let ty=ys; ty<ye; ty++) {
             for (let tz=zs; tz<ze; tz++) {
                 if (Math.floor(x/8)==Math.floor(tx/8) && Math.floor(y/8)==Math.floor(ty/8) &&Math.floor(z/8)==Math.floor(tz/8)) {
-//                    if (map.isSectorLoaded(tx,ty,tz)) {
-                        didSearch = true;
-                        covered &= map.get(tx, ty, tz);
-//                    }
+                    didSearch = true;
+                    covered &= map.get(tx, ty, tz);
                 }
             }
         }

@@ -92,7 +92,6 @@ void main(void) {
     float self_intensity = u_height;
     float fog_distance = (underground_fog_dist*u_height)+(sky_fog_dist*(1.0-u_height));
     v_fog_ratio = pow(min(1.0,distance(u_camera,a_position.xyz)/fog_distance),2.0);
-    v_fog_ratio *= v_fog_ratio;
     v_fog_color = (u_fog_sky_color*(1.0-u_height))+(u_fog_underground_color*u_height);
 
     float sun_light_offset = max(0.0,dot(v_normal,-normalize(u_sun_light_face)));

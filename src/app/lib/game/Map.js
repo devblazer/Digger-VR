@@ -4,13 +4,6 @@ import glm from 'gl-matrix';
 import Util from './../Util.js';
 
 const SECTOR_CACHE_LIMIT = 400;
-const TYPE_BUFFER_SIZE = {
-    empty: 0,
-    dirt:1000000,
-    grass:250000,
-    grassEdge:500000,
-    stone:750000
-};
 
 const VECTOR_DIR = [
     [-1,0,0],
@@ -207,7 +200,7 @@ export default class Map {
         return c;
     }
 
-    getForRender(camera,cameraFace,range=22,vertexData,vertexIndexTracker){
+    getForRender(camera,cameraFace,range=22,vertexData){
         const p = this._private;
 
         const arrs = [];

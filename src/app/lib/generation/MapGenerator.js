@@ -44,7 +44,6 @@ export default class MapGenerator {
         }
 
         this.addFloor();
-//        p.map.fill(0,3,0,false,32,25,32);
 
         const buildTime = ((new Date()).getTime()-startTime)/1000;
         const ret = this.report();

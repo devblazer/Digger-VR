@@ -80,7 +80,7 @@ const processGamepadState = ()=>{
 };
 
 export default class Input {
-    constructor(map,camera,cameraFace) {
+    constructor() {
         const p = this._private = {
             pointerLocked: false,
             mouseXmoved: 0,
