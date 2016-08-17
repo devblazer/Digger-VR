@@ -34,7 +34,7 @@ Navigate to localhost:3000
 + Saving and loading of maps to a server
 + Keeping map changes (digging) in sync with a server
 
-+ Code refactor
++ ~~Code refactor~~
 + Unit tests
 
 + Add camera tilt for VR mode
