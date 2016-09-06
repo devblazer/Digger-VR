@@ -37,7 +37,7 @@ const checkFace = (x,y,z,s,dir,map)=>{
 
 export default class Sector extends Cube {
     constructor(x=0,y=0,z=0){
-        super();
+        super(8,false);
         const p = this._private = {
             ...this._private,
             needsOptimisation:true,

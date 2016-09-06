@@ -1,25 +1,18 @@
 var Webpack = require('webpack');
 var path = require('path');
-var appPath = path.resolve(__dirname, 'src','app');
+var appPath = path.resolve(__dirname, 'src','node');
 var nodeModulesPath = path.resolve(__dirname, 'node_modules');
-var buildPath = path.resolve(__dirname, 'public', 'build');
+var buildPath = path.resolve(__dirname, 'serverDeploy');
 
 var config = {
-  node: {
-    net: "empty",
-    tls: "empty"
-  },
   context: __dirname,
-  devtool: 'eval-source-map',
-  entry: [
-    'webpack-dev-server/client?http://localhost:3000/',
-    'webpack/hot/dev-server',
-    path.resolve(appPath, 'main.js')],
+  devtool: 'source-map',
   output: {
     path: buildPath,
-    filename: 'bundle.js',
-    publicPath: '/build/'
+    filename: 'bundle.js'
   },
+  entry: [
+    path.resolve(appPath, 'main.js')],
   resolve : {
 
   },
@@ -31,9 +24,10 @@ var config = {
     {
       test: /\.jsx?$/,
       loader: 'babel',
-      exclude: /(node_modules|bower_components)/,
+      exclude: [nodeModulesPath],
       query: {
-        presets: ['es2015','stage-2']
+        optional: ['runtime'],
+        stage: 0
       }
     },
 
@@ -52,8 +46,7 @@ var config = {
     { test: /\.eot/, loader: "file-loader"},
     { test: /\.glsl$/, loader: 'webpack-glsl'}
     ]
-  },
-  plugins: [new Webpack.HotModuleReplacementPlugin()]
+  }
 };
 
 module.exports = config;

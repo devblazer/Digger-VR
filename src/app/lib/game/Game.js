@@ -12,7 +12,7 @@ export default class Game {
             MAX_FALL_SPEED:18,
             MOVE_SPEED:1.6,
             DIG_RATE:0.4,
-            MAP_SIZE:appState.mapSize
+            MAP_SIZE:map.getSize()
         };
 
         stateObj.MASS_DIG_FACES = [

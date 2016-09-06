@@ -386,12 +386,6 @@ export default class WebGL {
             ret.push(uvs2[n*2]);
             ret.push(uvs2[(n*2)+1]);
         }
-        if (!window.first) {
-            console.log(positions);
-            console.log(positions2);
-        }
-        window.first = true;
         return ret;
     }
 }
-export default WebGL;

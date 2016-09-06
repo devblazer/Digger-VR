@@ -2,6 +2,7 @@ import Sector from './Sector.js';
 import Plot from './Plot.js';
 import glm from 'gl-matrix';
 import Util from './../Util.js';
+import SplitBuffer from './../data/SplitBuffer.js';
 
 const SECTOR_CACHE_LIMIT = 400;
 
@@ -15,7 +16,7 @@ const VECTOR_DIR = [
 ];
 
 export default class Map {
-    constructor(size=64) {
+    constructor(comms,size=64) {
         size -= size%8;
         this._private = {
             size,
@@ -24,10 +25,45 @@ export default class Map {
             sectors:[],
             plots:[],
             sectorCache:[],
+            comms
         };
         this.autoSave = true;
 
         this.init();
+    }
+
+    new(callback){
+        const p = this._private;
+        let limit = 0;
+        const blockSpan = Math.floor(p.size/8);
+        p.comms.fetch('request_map',{size:p.size},fileID=>{
+            p.comms.fetch('set_map',{fileID:fileID.fileID,size:p.size},()=>{
+                console.log('Loading mapID: '+fileID.fileID);
+                const splitBuffer = new SplitBuffer(Uint8Array);
+                let blockInd = 0;
+                let blockCount = Math.pow(p.size/8,3);
+                const processSize = buffer=>{
+                    const tiles = (buffer[0]*256)+buffer[1];
+                    splitBuffer.process(tiles,processBlock);
+                };
+                const processBlock = buffer=>{
+                    limit++;
+                    if (buffer.length) {
+                        let z = Math.floor(blockInd / (blockSpan*blockSpan));
+                        let y = Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
+                        let x = blockInd % blockSpan;
+                        this.importPlot(x,y,z,buffer.buffer);
+                    }
+                    blockInd++;
+                    if (blockInd<blockCount)
+                        splitBuffer.process(2,processSize);
+                };
+                splitBuffer.process(2,processSize);
+                p.comms.fetch('download_map',null,mapPart=>{
+                    splitBuffer.addBuffer(new Uint8Array(mapPart));
+                },callback);
+            });
+        });
     }
 
     isSectorLoaded(x,y,z) {
@@ -60,7 +96,7 @@ export default class Map {
         const str = x+'_'+y+'_'+z;
 
         const sector = new Sector(x*8,y*8,z*8);
-        sector.load(p.plots[x][y][z],x==3&&y==3&&z==1);
+        sector.load(p.plots[x][y][z]);
         p.sectors[str] = sector;
         if (p.sectorCache.length == SECTOR_CACHE_LIMIT) {
             p.sectorCache.sort((a,b)=>{
@@ -232,5 +268,41 @@ export default class Map {
 
     exportSector(x,y,z){
         return this.getSector(x*8,y*8,z*8);
+    }
+
+    exportPlot(x,y,z){
+        this.getSector(x*8,y*8,z*8).save(this._private.plots[x][y][z]);
+        return this._private.plots[x][y][z].export();
+    }
+    getPlot(x,y,z){
+        this.getSector(x*8,y*8,z*8).save(this._private.plots[x][y][z]);
+        return this._private.plots[x][y][z];
+    }
+    importPlot(x,y,z,buffer) {
+        const p = this._private;
+
+        p.plots[x][y][z].import(buffer);
+
+        let str = x+'_'+y+'_'+z;
+        let secFound = -1;
+        p.sectorCache.forEach((ind,sec)=>{
+            if (sec.hash==str)
+                secFound = ind;
+        });
+        if (secFound>-1) {
+            delete(p.sectors[str]);
+            p.sectorCache.splice(secFound,1);
+        }
+   }
+
+    foreachPlot(func){
+        const p = this._private;
+        for (let z=0;z<p.size/8;z++){
+            for (let y=0;y<p.size/8;y++){
+                for (let x=0;x<p.size/8;x++){
+                    func(x,y,z);
+                }
+            }
+        }
     }
 }

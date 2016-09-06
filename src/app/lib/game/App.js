@@ -3,13 +3,16 @@ import Map from './Map.js';
 import MapGenerator from './../generation/MapGenerator.js';
 import Game from './Game.js';
 import Renderer from './../render/Renderer.js';
+import Comms from './../data/Comms.js';
 
 export default class App {
-    constructor(){
+    constructor(comms){
+        comms = comms || new Comms();
         const p = this._private = {
             state:new State({
             }),
             game:null,
+            comms
         };
         p.state.set({
             mapSize:32
@@ -19,13 +22,15 @@ export default class App {
 
     newGame(map=null){
         const p = this._private;
-        const mapSize = p.state.get('mapSize');
+        let mapSize;
 
         if (!map) {
-            map = new Map(mapSize);
+            map = new Map(comms,p.state.get('mapSize'));
             const gen = new MapGenerator(map);
             console.log(gen.autoGenerate());
         }
+        else
+            p.state.set('mapSize',map.getSize());
 
         p.game = new Game(p.state.export(),p.renderer,map);
     }

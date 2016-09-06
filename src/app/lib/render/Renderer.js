@@ -179,7 +179,7 @@ export default class Renderer {
                 u_height: depthRatio
             });
 
-            guiVertex = new Float32Array([
+            let guiVertex = new Float32Array([
                 0.05, -0.05, -1.5, 1.0, 0.0,
                 0.05, 0.05, -1.5, 1.0, 1.0,
                 -0.05, 0.05, -1.5, 0.0, 1.0,

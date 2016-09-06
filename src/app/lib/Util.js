@@ -99,7 +99,7 @@ export default {
         debugReady = false;
     },
     isArray(val){
-        return $.isArray(val);
+        return Array.isArray(val);
     },
     randomVector3(){
         let s1=1,s2=1;

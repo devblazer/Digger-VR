@@ -121,7 +121,7 @@ export default class Plot {
     }
 
     export(){
-        return this._private.u8v.buffer;
+        return this._private.u8v.length?(new Buffer(this._private.u8v,'ascii')):null;
     }
     import(buffer){
         this._private.u8v = new Uint8Array(buffer);

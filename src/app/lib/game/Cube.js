@@ -12,6 +12,7 @@ export default class Cube extends Subscription {
             val,
             data:[]
         };
+
         for (let x=0;x<size;x++) {
             p.data[x] = [];
             for (let y = 0; y < size; y++)
@@ -32,8 +33,9 @@ export default class Cube extends Subscription {
 
         for (let x=xs;x<xs+xl;x++)
             for (let y=ys;y<ys+yl;y++) {
-                for (let z=zs;z<zs+zl;z++)
+                for (let z=zs;z<zs+zl;z++) {
                     p.data[x][y][z] = val;
+                }
             }
 
         this.trigger('dataChanged');
