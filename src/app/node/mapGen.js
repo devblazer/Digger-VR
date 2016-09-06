@@ -31,8 +31,8 @@ if (process.argv[2] && process.argv[2].split('=')[0] == '--gen') {
             total += 2 + (data?(data.length):0);
             lots++;
             blanks += data ? 0 : 1;
-            let intb = data?Math.floor(data.length/256):0;
-            let ints = data?(data.length%256):0;
+            var intb = data?Math.floor(data.length/256):0;
+            var ints = data?(data.length%256):0;
             console.log(x,y,z);
             console.log(intb,ints);
             stream.write(new Buffer([intb,ints], 'ascii'));
