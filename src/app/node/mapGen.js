@@ -1,5 +1,5 @@
 require("babel-register")({presets:['stage-2','es2015']});
-console.log('wtf');
+
 var express = require('express');
 var fs = require('fs');
 var path = require('path');
