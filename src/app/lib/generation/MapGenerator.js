@@ -7,7 +7,7 @@ const TILE_INDEX_DIRT = 1;
 const TILE_INDEX_EMPTY = false;
 
 if (!Math.cbrt)
-    Math.prototype.cbrt = function(num,norounding) {
+    Math.cbrt = function(num,norounding) {
         var ret = Math.pow(num,1/3);
         return norounding?Math.round(ret):ret;
     };
