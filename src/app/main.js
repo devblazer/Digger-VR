@@ -11,7 +11,7 @@ else
 function run() {
     const comms = new Comms(true );
     const app = new App(comms);
-    const map = new Map(comms,512);
+    const map = new Map(comms,64);
     map.new(()=>{
         app.newGame(map);
     });
