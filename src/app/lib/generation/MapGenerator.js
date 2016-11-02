@@ -1,5 +1,6 @@
 import Util from './../Util.js';
 
+const TILE_INDEX_SAND = 5;
 const TILE_INDEX_IMPENETRABLE = 4;
 const TILE_INDEX_STONE = 3;
 const TILE_INDEX_GRASS = 2;
@@ -57,6 +58,7 @@ export default class MapGenerator {
         let surface = 0;
         let dirt = 0;
         let stone = 0;
+        let sand = 0;
         let cave = 0;
         let lastCount = -1;
 
@@ -78,6 +80,8 @@ export default class MapGenerator {
                                     surface++;
                                 else if (val==TILE_INDEX_STONE)
                                     stone++;
+                                else if (val==TILE_INDEX_SAND)
+                                    sand++;
                                 if (val!==TILE_INDEX_EMPTY)
                                     notEmptyTiles++;
                             }
@@ -90,12 +94,11 @@ export default class MapGenerator {
                 }
             }
         }
-        return {sky,surface,dirt,stone,cave,stoneRatio:Math.floor(stone/(stone+dirt+surface)*100)+'%',caveRatio:Math.floor(cave/(stone+dirt+surface+cave)*100)+'%'};
+        return {sky,surface,dirt,stone,sand,cave,stoneRatio:Math.floor(stone/(stone+dirt+surface+sand)*100)+'%',caveRatio:Math.floor(cave/(stone+dirt+surface+sand+cave)*100)+'%'};
     }
 
     continent(skyRows=8){
         const p = this._private;
-
         p.map.fill(0,p.size-skyRows,0,TILE_INDEX_EMPTY,p.size,skyRows,p.size);
         p.map.fill(0,p.size-skyRows-1,0,TILE_INDEX_GRASS,p.size,1,p.size);
         p.map.fill(0,0,0,TILE_INDEX_DIRT,p.size,p.size-skyRows-1,p.size);
@@ -137,7 +140,6 @@ export default class MapGenerator {
     splatter(x,y,z,r,spots,val){
         let tiles = Math.pow(r*2,3)/2;
         let spotR = Math.cbrt(tiles/spots*2)/3;
-
         for (let c=0;c<spots*2;c++){
             let v = Util.randomVector3();
             let d = Math.sin(Util.deg2Rad(Math.random()*90));
