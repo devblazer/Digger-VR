@@ -4,5 +4,6 @@ node_modules
 *.idea
 .idea/*
 public/build/*
+serverDeploy/*
 private/*
 *.mapgit pu
