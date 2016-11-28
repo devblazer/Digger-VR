@@ -93,6 +93,9 @@ io.on('connection',function(socket){
   });
 
   socket.on('set_map',function(data){
+    if (data.data.isNew) {
+      var name = crypto.randomBytes(32).toString('hex').substr(0,8);
+    }
     user.currentMap = data.data.fileID;
     user.mapSize = data.data.size;
     socket.emit('set_map_'+data.onceID,true);

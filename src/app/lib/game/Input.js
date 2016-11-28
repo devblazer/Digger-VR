@@ -79,9 +79,34 @@ const processGamepadState = ()=>{
     return actions;
 };
 
+const bindTap = function(el,callback,bubble=false) {
+    el.addEventListener('click',callback,bubble);
+    el.addEventListener('touchstart',callback,bubble);
+};
+
+let menuIsOpen = false;
+const closeAllUIPanels = function(){
+    menuIsOpen = false;
+    document.querySelectorAll('.ui-panel.open').forEach(el=>{
+        el.className = el.className.replace(/\s*open|open\s*/,'');
+    });
+};
+
+const openMenu = function(){
+    document.getElementById('open_menu').className += ' active';
+    openPanel('ui_menu');
+};
+
+const openPanel = function(panelID){
+    closeAllUIPanels();
+    menuIsOpen = true;
+    document.getElementById(panelID).className += ' open';
+};
+
 export default class Input {
-    constructor() {
+    constructor(app) {
         const p = this._private = {
+            app,
             pointerLocked: false,
             mouseXmoved: 0,
             mouseYmoved: 0,
@@ -96,23 +121,22 @@ export default class Input {
         const me = this;
 
         if (supportsPointerLock) {
-            document.body.addEventListener('click', activatePointerLock, true);
-            document.body.addEventListener('touchstart', activatePointerLock, true);
-            function activatePointerLock () {
-                if (me.allowFullScreen)
-                    document.body.requestFullscreen();
-                if (me.allowPointerLock && document.body.requestPointerLock && !p.pointerLocked) {
-                    document.body.requestPointerLock();
+            bindTap(document.body,e=>{
+                if (e.target.nodeName=='CANVAS') {
+                    if (me.allowFullScreen)
+                        document.body.requestFullscreen();
+                    if (me.allowPointerLock && document.body.requestPointerLock && !p.pointerLocked)
+                        document.body.requestPointerLock();
                 }
-            }
+            },true);
 
-            const pointerLockChanged = (e)=> {
+            const pointerLockChanged = e=> {
                 p.pointerLocked = (document.pointerLockElement === document.body || document.mozPointerLockElement === document.body || document.webkitPointerLockElement === document.body);
             };
             document.addEventListener('pointerlockchange', pointerLockChanged, false);
             document.addEventListener('mozpointerlockchange', pointerLockChanged, false);
             document.addEventListener('webkitpointerlockchange', pointerLockChanged, false);
-            document.addEventListener('mousemove', (e)=> {
+            document.addEventListener('mousemove', e=> {
                 if (p.pointerLocked) {
                     p.mouseXmoved += (e.movementX || e.mozMovementX || e.webkitMovementX || 0);
                     p.mouseYmoved += (e.movementY || e.mozMovementY || e.webkitMovementY || 0);
@@ -120,31 +144,64 @@ export default class Input {
             }, false);
         }
 
-        document.addEventListener('mousedown',(e)=>{
-            if (MOUSE2ACTION[e.button] && p.pointerLocked) {
+        document.addEventListener('mousedown',e=>{
+            if (!menuIsOpen && MOUSE2ACTION[e.button] && p.pointerLocked) {
                 p.mouseDown[e.button] = 1;
                 p.mouseActions[MOUSE2ACTION[e.button]] = 1;
             }
         },true);
-        document.addEventListener('mouseup',(e)=>{
+        document.addEventListener('mouseup',e=>{
             if (MOUSE2ACTION[e.button] && p.pointerLocked) {
                 p.mouseDown[e.button] = 0;
                 p.mouseActions[MOUSE2ACTION[e.button]] = 0;
             }
         },true);
 
-        document.addEventListener('keydown',(e)=>{
-            if (KEYS[e.which||e.keyCode]) {
+        document.addEventListener('keydown',e=>{
+            if (!menuIsOpen && KEYS[e.which||e.keyCode]) {
                 p.axisStates[KEYS2AXES[KEYS[e.which || e.keyCode]]] = 1;
                 e.preventDefault();
             }
         },true);
-        document.addEventListener('keyup',(e)=>{
+        document.addEventListener('keyup',e=>{
             if (KEYS[e.which||e.keyCode]) {
                 p.axisStates[KEYS2AXES[KEYS[e.which || e.keyCode]]] = 0;
                 e.preventDefault();
             }
         },true);
+
+        bindTap(document.getElementById('open_menu'),openMenu);
+        bindTap(document.getElementById('new_game'),()=>{
+            document.getElementById('game_name').value = '';
+            openPanel('ui_new_game');
+        });
+        bindTap(document.getElementById('load_game'),()=>{openPanel('ui_load_game')});
+        bindTap(document.getElementById('controls'),()=>{openPanel('ui_controls')});
+
+        bindTap(document.body,e=>{
+            if (e.target.className == 'close') {
+                if (e.target.rel)
+                    openPanel(e.target.rel);
+                else
+                    closeAllUIPanels();
+            }
+        },true);
+
+        bindTap(document.getElementById('map_size'),e=>{
+            if (e.target.rel) {
+                const gameNameEl = document.getElementById('game_name');
+                if (!gameNameEl.value.replace(/\s/g,''))
+                    alert('Please fill in a game name first');
+                else {
+                    app.newGame(e.target.rel/1);
+                    closeAllUIPanels();
+                }
+            }
+        },true);
+    }
+
+    static openMenu(){
+        openMenu();
     }
 
     getMouseMoved(reset=true){

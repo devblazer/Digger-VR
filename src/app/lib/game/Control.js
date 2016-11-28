@@ -1,11 +1,10 @@
 import glm from 'gl-matrix';
 import Orientation from './Orientation.js';
-import Input from './Input.js';
 import Util from './../Util.js';
 import State from './../State.js';
 
 export default class Control {
-    constructor(gameState,map,camera,cameraFace,cameraUp){
+    constructor(gameState,map,camera,cameraFace,cameraUp,input){
         const p = this._private = {
             orientation:new Orientation(),
             gameState,
@@ -20,7 +19,7 @@ export default class Control {
             cameraUp,
             cameraForward:[0,0,0],
             cameraRight:[0,0,0],
-            input:new Input()
+            input
         };
         this.normalizeCameraVectors();
     }

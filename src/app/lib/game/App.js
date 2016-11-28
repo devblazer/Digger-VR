@@ -4,6 +4,7 @@ import MapGenerator from './../generation/MapGenerator.js';
 import Game from './Game.js';
 import Renderer from './../render/Renderer.js';
 import Comms from './../data/Comms.js';
+import Input from './Input.js';
 
 export default class App {
     constructor(comms){
@@ -12,7 +13,8 @@ export default class App {
             state:new State({
             }),
             game:null,
-            comms
+            comms,
+            input:new Input(this)
         };
         p.state.set({
             mapSize:32
@@ -22,16 +24,21 @@ export default class App {
 
     newGame(map=null){
         const p = this._private;
-        let mapSize;
+
+        if (typeof map=='number') {
+            p.state.set('mapSize', map);
+            map = null;
+        }
 
         if (!map) {
-            map = new Map(comms,p.state.get('mapSize'));
-            const gen = new MapGenerator(map);
-            console.log(gen.autoGenerate());
+            map = new Map(p.comms, p.state.get('mapSize'));
+            map.new(()=> {
+                p.game = new Game(p.state.export(),p.renderer,map,p.input);
+            });
         }
-        else
-            p.state.set('mapSize',map.getSize());
-
-        p.game = new Game(p.state.export(),p.renderer,map);
+        else {
+            p.state.set('mapSize', map.getSize());
+            p.game = new Game(p.state.export(), p.renderer, map, p.input);
+        }
     }
 }

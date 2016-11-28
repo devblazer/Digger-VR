@@ -2,7 +2,7 @@ import State from './../State.js';
 import Control from './Control.js';
 
 export default class Game {
-    constructor(appState,renderer,map){
+    constructor(appState,renderer,map,input){
         const stateObj = {
             SELF_COL_RADIUS:0.75,
             SELF_COL_HEIGHT:2.5,
@@ -56,7 +56,8 @@ export default class Game {
             map,
             [appState.mapSize / 2, appState.mapSize - 5, appState.mapSize / 2],
             [0, 0, -1],
-            [0, 1, 0]
+            [0, 1, 0],
+            input
         );
 
         p.state.set('gameActive',true);

@@ -37,7 +37,7 @@ export default class Map {
         let limit = 0;
         const blockSpan = Math.floor(p.size/8);
         p.comms.fetch('request_map',{size:p.size},fileID=>{
-            p.comms.fetch('set_map',{fileID:fileID.fileID,size:p.size},()=>{
+            p.comms.fetch('set_map',{fileID:fileID.fileID,size:p.size,isNew:true},fileID=>{
                 console.log('Loading mapID: '+fileID.fileID);
                 const splitBuffer = new SplitBuffer(Uint8Array);
                 let blockInd = 0;

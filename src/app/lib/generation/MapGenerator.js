@@ -129,25 +129,25 @@ export default class MapGenerator {
         }
     }
 
-    sphere(x,y,z,r,val){
+    sphere(x,y,z,r,val,callback=()=>{return true;}){
         const p = this._private;
         for (let sx=Math.max(0,Math.round(x+0.5-r)); sx<=Math.min(p.size-1,Math.round(x+0.5+r)); sx++) {
             for (let sy=Math.max(0,Math.round(y+0.5-r)); sy<=Math.min(p.size-1,Math.round(y+0.5+r)); sy++)
                 for (let sz=Math.max(0,Math.round(z+0.5-r)); sz<=Math.min(p.size-1,Math.round(z+0.5+r)); sz++) {
-                    if (Math.sqrt(Math.pow(sx-x,2)+Math.pow(sy-y,2)+Math.pow(sz-z,2))<=r)
+                    if (callback(sx,sy,sz) && Math.sqrt(Math.pow(sx-x,2)+Math.pow(sy-y,2)+Math.pow(sz-z,2))<=r)
                         p.map.set(sx, sy, sz, val);
                 }
         }
     }
 
-    splatter(x,y,z,r,spots,val){
+    splatter(x,y,z,r,spots,val,callback=()=>{return true;}){
         let tiles = Math.pow(r*2,3)/2;
         let spotR = Math.cbrt(tiles/spots*2)/3;
 
         for (let c=0;c<spots*2;c++){
             let v = Util.randomVector3();
             let d = Math.sin(Util.deg2Rad(Math.random()*90));
-            this.sphere(x+(v[0]*d),y+(v[1]*d),z+(v[2]*d),((Math.random()*1.5)+0.5)*spotR,val);
+            this.sphere(x+(v[0]*d),y+(v[1]*d),z+(v[2]*d),((Math.random()*1.5)+0.5)*spotR,val,callback);
         }
     }
 
