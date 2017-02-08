@@ -27,6 +27,7 @@ export default class App {
 
         if (typeof map=='number') {
             p.state.set('mapSize', map);
+            console.log(map);
             map = null;
         }
 

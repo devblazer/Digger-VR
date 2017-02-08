@@ -32,22 +32,19 @@ export default class Map {
         this.init();
     }
 
-    new(callback){
+    new(callback,name='test'){
         const p = this._private;
-        let limit = 0;
         const blockSpan = Math.floor(p.size/8);
+        console.log('here');
+
         p.comms.fetch('request_map',{size:p.size},fileID=>{
-            p.comms.fetch('set_map',{fileID:fileID.fileID,size:p.size,isNew:true},fileID=>{
-                console.log('Loading mapID: '+fileID.fileID);
-                const splitBuffer = new SplitBuffer(Uint8Array);
+            p.comms.fetch('new_game',{fileID:fileID.fileID,size:p.size,gameName:name},data=>{
+                console.log('Loading gameID: '+data.gameID);
+
                 let blockInd = 0;
                 let blockCount = Math.pow(p.size/8,3);
-                const processSize = buffer=>{
-                    const tiles = (buffer[0]*256)+buffer[1];
-                    splitBuffer.process(tiles,processBlock);
-                };
-                const processBlock = buffer=>{
-                    limit++;
+
+                p.comms.fetch('download_map',null,buffer=>{
                     if (buffer.length) {
                         let z = Math.floor(blockInd / (blockSpan*blockSpan));
                         let y = Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
@@ -55,14 +52,30 @@ export default class Map {
                         this.importPlot(x,y,z,buffer.buffer);
                     }
                     blockInd++;
-                    if (blockInd<blockCount)
-                        splitBuffer.process(2,processSize);
-                };
-                splitBuffer.process(2,processSize);
-                p.comms.fetch('download_map',null,mapPart=>{
-                    splitBuffer.addBuffer(new Uint8Array(mapPart));
                 },callback);
             });
+        });
+    }
+
+    load(gameID,callback) {
+        const p = this._private;
+        const blockSpan = Math.floor(p.size/8);
+
+        p.comms.fetch('load_game',{gameID,size:p.size},data=>{
+            console.log('Loading gameID: '+data.gameID);
+
+            let blockInd = 0;
+            let blockCount = Math.pow(p.size/8,3);
+
+            p.comms.fetch('download_map',null,buffer=>{
+                if (buffer.length) {
+                    let z = Math.floor(blockInd / (blockSpan*blockSpan));
+                    let y = Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
+                    let x = blockInd % blockSpan;
+                    this.importPlot(x,y,z,buffer.buffer);
+                }
+                blockInd++;
+            },callback);
         });
     }
 

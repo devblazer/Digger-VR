@@ -12,16 +12,23 @@ const processNow = function(size,callback){
         let offset = p.position;
         while (position < size && p.buffers.length) {
             if (p.buffers[0].length < offset + size) {
+                console.log('a');
                 let copy = p.buffers[0].slice(offset);
+                console.log('b');
                 buffer.set(copy, position, copy.length);
+                console.log('c');
                 position += copy.length;
                 offset = 0;
                 p.position -= p.buffers[0].length;
                 p.buffers.shift();
             }
             else {
+                console.log('d');
                 let copy = p.buffers[0].slice(offset, size - position + offset);
+                console.log('e');
                 buffer.set(copy, position, size - position);
+                console.log(buffer);
+                console.log('f');
                 position = size;
                 offset += size - position;
             }
