@@ -1,5 +1,6 @@
 import Util from './../Util.js';
 
+const TILE_INDEX_SAND = 5;
 const TILE_INDEX_IMPENETRABLE = 4;
 const TILE_INDEX_STONE = 3;
 const TILE_INDEX_GRASS = 2;
@@ -19,8 +20,9 @@ export default class MapGenerator {
         const startTime = (new Date()).getTime();
 
         this.continent(skyRows);
+        this.sand(skyRows);
         this.minerals(skyRows);
-
+        
         let tunnels;
         if (p.size<64)
             tunnels = 5;
@@ -57,6 +59,7 @@ export default class MapGenerator {
         let surface = 0;
         let dirt = 0;
         let stone = 0;
+        let sand = 0;
         let cave = 0;
         let lastCount = -1;
 
@@ -78,6 +81,8 @@ export default class MapGenerator {
                                     surface++;
                                 else if (val==TILE_INDEX_STONE)
                                     stone++;
+                                else if (val==TILE_INDEX_SAND)
+                                    sand++;
                                 if (val!==TILE_INDEX_EMPTY)
                                     notEmptyTiles++;
                             }
@@ -90,12 +95,11 @@ export default class MapGenerator {
                 }
             }
         }
-        return {sky,surface,dirt,stone,cave,stoneRatio:Math.floor(stone/(stone+dirt+surface)*100)+'%',caveRatio:Math.floor(cave/(stone+dirt+surface+cave)*100)+'%'};
+        return {sky,surface,dirt,stone,sand,cave,stoneRatio:Math.floor(stone/(stone+dirt+surface+sand)*100)+'%',caveRatio:Math.floor(cave/(stone+dirt+surface+sand+cave)*100)+'%'};
     }
 
     continent(skyRows=8){
         const p = this._private;
-
         p.map.fill(0,p.size-skyRows,0,TILE_INDEX_EMPTY,p.size,skyRows,p.size);
         p.map.fill(0,p.size-skyRows-1,0,TILE_INDEX_GRASS,p.size,1,p.size);
         p.map.fill(0,0,0,TILE_INDEX_DIRT,p.size,p.size-skyRows-1,p.size);
@@ -123,25 +127,24 @@ export default class MapGenerator {
         }
     }
 
-    sphere(x,y,z,r,val){
+    sphere(x,y,z,r,val,callback=()=>{return true;}){
         const p = this._private;
         for (let sx=Math.max(0,Math.round(x+0.5-r)); sx<=Math.min(p.size-1,Math.round(x+0.5+r)); sx++) {
             for (let sy=Math.max(0,Math.round(y+0.5-r)); sy<=Math.min(p.size-1,Math.round(y+0.5+r)); sy++)
                 for (let sz=Math.max(0,Math.round(z+0.5-r)); sz<=Math.min(p.size-1,Math.round(z+0.5+r)); sz++) {
-                    if (Math.sqrt(Math.pow(sx-x,2)+Math.pow(sy-y,2)+Math.pow(sz-z,2))<=r)
+                    if (callback(sx,sy,sz) && Math.sqrt(Math.pow(sx-x,2)+Math.pow(sy-y,2)+Math.pow(sz-z,2))<=r)
                         p.map.set(sx, sy, sz, val);
                 }
         }
     }
 
-    splatter(x,y,z,r,spots,val){
+    splatter(x,y,z,r,spots,val,callback=()=>{return true;}){
         let tiles = Math.pow(r*2,3)/2;
         let spotR = Math.cbrt(tiles/spots*2)/3;
-
         for (let c=0;c<spots*2;c++){
             let v = Util.randomVector3();
             let d = Math.sin(Util.deg2Rad(Math.random()*90));
-            this.sphere(x+(v[0]*d),y+(v[1]*d),z+(v[2]*d),((Math.random()*1.5)+0.5)*spotR,val);
+            this.sphere(x+(v[0]*d),y+(v[1]*d),z+(v[2]*d),((Math.random()*1.5)+0.5)*spotR,val,callback);
         }
     }
 
@@ -197,5 +200,18 @@ export default class MapGenerator {
         }
 
         return [x+(v[0]*l),y+(v[1]*l),z+(v[2]*l)];
+    }
+
+    sand(skyRows=8,biomesCount=1,r=0){
+        const p = this._private;
+        r = r || (Math.random()*5)+1;
+        for (let n=0;n<biomesCount;n++) {
+            let y = p.size-skyRows-1;
+            let x = Math.floor(Math.random() * p.size);
+            let z = Math.floor(Math.random() * p.size);
+            this.splatter(x, y, z, r, 1, TILE_INDEX_SAND, (x,y,z)=>{
+                return !!p.map.get(x,y,z);
+            });
+        }
     }
 }

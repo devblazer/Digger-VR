@@ -16,13 +16,14 @@ const FACE_TILE_ADDITION = [
 ];
 
 const FACE2SIDE = [1,2,1,1,0,1];
-const TILES = ['empty','dirt','grass','stone','impenetrable'];
+const TILES = ['empty','dirt','grass','stone','impenetrable', 'sand'];
 const TILE_TEX_RENDER = [
     [0,0,0],
     [1,1,1],
     [3,2,1],
     [4,4,4],
-    [5,5,5]
+    [5,5,5],
+    [6,6,6]
 ];
 let fcnt = 0;
 export default class Tile {
