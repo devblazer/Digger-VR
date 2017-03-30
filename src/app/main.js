@@ -9,7 +9,7 @@ if (['complete', 'loaded', 'interactive'].includes(document.readyState) && docum
 else
     window.addEventListener('DOMContentLoaded', run, false);
 
-const DEBUG_MODE = 64;
+const DEBUG_MODE = false;
 
 function run() {
     if (DEBUG_MODE) {

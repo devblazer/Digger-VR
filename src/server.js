@@ -117,8 +117,9 @@ MongoClient.connect(url, function(err, db) {
       });
 
       socket.on('new_game',function(data){
+        console.log(data);
         data.data.gameID = crypto.randomBytes(16).toString('hex');
-        gamesCollection.insert({id:data.data.gameID,name:data.data.gameName,mapSize:data.data.mapSize},err=>{
+        gamesCollection.insert({id:data.data.gameID,name:data.data.gameName,mapSize:data.data.size},err=>{
           if (err) {
             console.log(err);
             return;
@@ -127,8 +128,8 @@ MongoClient.connect(url, function(err, db) {
           connection.currentMap = data.data.fileID;
           connection.currentGame = data.data.gameID;
           connection.mapSize = data.data.size;
-          //var mapCollection = db.collection(data.data.gameID);
-          //mapCollection.createIndex({x:1,y:1,z:1});
+          var mapCollection = db.collection('map_'+data.data.gameID);
+          mapCollection.createIndex({x:1,y:1,z:1});
 
           var axisBound = connection.mapSize/8;
           var stream = fs.createReadStream('./private/maps/generated/size_'+connection.mapSize+'/map_'+connection.currentMap+'.map',{flags:'r'});
@@ -137,25 +138,26 @@ MongoClient.connect(url, function(err, db) {
           let blockInd = 0;
           const insertsExpected = Math.pow(axisBound,3);
           let insertsDone = 0;
+          let tiles=0;
 
           const processSize = buffer=>{
-            const tiles = (buffer[0]*256)+buffer[1];
+            tiles = (buffer[0]*256)+buffer[1];
             splitBuffer.process(tiles,processBlock);
           };
           const processBlock = buffer=>{
-            if (buffer.length) {
-              let z = Math.floor(blockInd / (axisBound*axisBound));
-              let y = Math.floor((blockInd - (z*axisBound*axisBound)) / axisBound);
-              let x = blockInd % axisBound;
-/*              mapCollection.insert({x,y,z,data:new Mongo.Binary(buffer)},err=>{
+            let z = Math.floor(blockInd / (axisBound * axisBound));
+            let y = Math.floor((blockInd - (z * axisBound * axisBound)) / axisBound);
+            let x = blockInd % axisBound;
+
+            mapCollection.insert({x, y, z, data: new Mongo.Binary(new Buffer(buffer))}, err => {
                 if (err)
                     console.log(err);
                 insertsDone++;
-                
+
                 if (insertsDone == insertsExpected)
-                  socket.emit('new_game_' + data.onceID, data.data);
-              });*/
-            }
+                    socket.emit('new_game_' + data.onceID, data.data);
+            });
+
             blockInd++;
             if (blockInd<insertsExpected)
               splitBuffer.process(2,processSize);
@@ -177,24 +179,23 @@ MongoClient.connect(url, function(err, db) {
       });
 
       socket.on('download_map',function(data){
-        console.log(data);
         const axisBound = connection.mapSize/8;
-//        var mapCollection = db.collection(connection.currentGame);
+        let mapCollection = db.collection('map_'+connection.currentGame);
         let count = 0;
         let complete = Math.pow(axisBound,3);
 
         for (let z=0;z<axisBound;z++) {
           for (let y=0;y<axisBound;y++) {
             for (let x=0;x<axisBound;x++) {
-              /*mapCollection.find({x,y,z}).toArray((err,docs)=>{
+              mapCollection.find({x,y,z}).toArray((err,docs)=>{
                 count++;
                 if (err)
                     console.log(err);
                 else
-                  socket.emit('download_map_part_'+data.partID,docs[0].data);
+                  socket.emit('download_map_part_'+data.partID,{x,y,z,d:new Buffer(docs[0].data.buffer)});//new Uint8Array(docs[0].data.buffer));
                 if (count==complete)
                   socket.emit('download_map_end_'+data.partID,true);
-              });*/
+              });
             }
           }
         }

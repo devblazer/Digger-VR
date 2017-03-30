@@ -6,4 +6,5 @@ node_modules
 public/build/*
 serverDeploy/*
 private/*
+npm-debug.log*
 *.mapgit pu

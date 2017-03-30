@@ -7,6 +7,7 @@
     "start": "node src/server.js",
     "startServer": "webpack -p --config ./webpack.server.config.js && node serverDeploy/bundle.js",
     "postinstall": "",
+    "db": "mongod --dbpath ./private/db",
     "build": "webpack -p --config ./webpack.production.config.js",
     "buildServer": "webpack -p --config ./webpack.server.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"

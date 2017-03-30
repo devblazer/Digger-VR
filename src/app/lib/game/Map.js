@@ -44,12 +44,15 @@ export default class Map {
                 let blockInd = 0;
                 let blockCount = Math.pow(p.size/8,3);
 
-                p.comms.fetch('download_map',null,buffer=>{
+                p.comms.fetch('download_map',null,data=>{
+                    let buffer = new Uint8Array(data.d);
                     if (buffer.length) {
-                        let z = Math.floor(blockInd / (blockSpan*blockSpan));
-                        let y = Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
-                        let x = blockInd % blockSpan;
-                        this.importPlot(x,y,z,buffer.buffer);
+                        let z = data.z;//Math.floor(blockInd / (blockSpan*blockSpan));
+                        let y = data.y;//Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
+                        let x = data.x;//blockInd % blockSpan;
+                        if (x==2&&y==2&&z==2)
+                            console.log(buffer);
+                        this.importPlot(x,y,z,buffer);
                     }
                     blockInd++;
                 },callback);
