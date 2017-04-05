@@ -1,6 +1,7 @@
 # Digger VR
 
 A browser based 'Minecraft' meets 'Terraria' kind of idea with things like gamepad and VR support thrown in the mix.
+![Screenshot](https://drive.google.com/open?id=0B4R1dtfUm4ypZFVRTDFMYll4ZVE)
 
 **To run:**
 clone the repo then run:
