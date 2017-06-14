@@ -50,7 +50,7 @@ export default class Map {
                         let z = data.z;//Math.floor(blockInd / (blockSpan*blockSpan));
                         let y = data.y;//Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
                         let x = data.x;//blockInd % blockSpan;
-                        if (x==2&&y==2&&z==2)
+                        if (x==31&&y==31&&z==31)
                             console.log(buffer);
                         this.importPlot(x,y,z,buffer);
                     }

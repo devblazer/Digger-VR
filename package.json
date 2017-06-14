@@ -4,7 +4,7 @@
   "description": "A browser based 'Minecraft' meets 'Terraria' kind of idea with things like gamepad and VR support thrown in the mix",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node src/server/server.js",
     "startServer": "webpack -p --config ./webpack.server.config.js && node serverDeploy/bundle.js",
     "postinstall": "",
     "db": "mongod --dbpath ./private/db",
