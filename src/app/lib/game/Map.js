@@ -50,8 +50,6 @@ export default class Map {
                         let z = data.z;//Math.floor(blockInd / (blockSpan*blockSpan));
                         let y = data.y;//Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
                         let x = data.x;//blockInd % blockSpan;
-                        if (x==31&&y==31&&z==31)
-                            console.log(buffer);
                         this.importPlot(x,y,z,buffer);
                     }
                     blockInd++;
@@ -65,17 +63,18 @@ export default class Map {
         const blockSpan = Math.floor(p.size/8);
 
         p.comms.fetch('load_game',{gameID,size:p.size},data=>{
-            console.log('Loading gameID: '+data.gameID);
+            console.log('Loading gameID: '+gameID);
 
             let blockInd = 0;
             let blockCount = Math.pow(p.size/8,3);
 
-            p.comms.fetch('download_map',null,buffer=>{
+            p.comms.fetch('download_map',null,data=>{
+                let buffer = new Uint8Array(data.d);
                 if (buffer.length) {
-                    let z = Math.floor(blockInd / (blockSpan*blockSpan));
-                    let y = Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
-                    let x = blockInd % blockSpan;
-                    this.importPlot(x,y,z,buffer.buffer);
+                    let z = data.z;//Math.floor(blockInd / (blockSpan*blockSpan));
+                    let y = data.y;//Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
+                    let x = data.x;//blockInd % blockSpan;
+                    this.importPlot(x,y,z,buffer);
                 }
                 blockInd++;
             },callback);
@@ -126,6 +125,16 @@ export default class Map {
             p.sectorCache.shift();
         }
         p.sectorCache.push({hash:str,x,y,z,modified:(new Date()).getTime()});
+    }
+
+    uploadPlotFor(x,y,z) {
+        const p = this._private;
+        let sx = Math.floor(x/8);
+        let sy = Math.floor(y/8);
+        let sz = Math.floor(z/8);
+        let plot = p.plots[sx][sy][sz];
+        this.getSector(x,y,z).save(plot);
+        p.comms.emit('update_plot',{x:sx,y:sy,z:sz,data:plot.export()});
     }
 
     findIntersect(origin,vector,limit) {

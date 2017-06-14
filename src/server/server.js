@@ -106,7 +106,7 @@ MongoClient.connect(url, function(err, db) {
     console.log('connected: '+connection_id);
     var connection = connections[connection_id] = {id:connection_id};
     connection.user = {id:'asdfghjk',games:[]};
-    gamesCollection.find({userID:connection.user.id}).toArray((err,docs)=>{
+    gamesCollection.find({}).toArray((err,docs)=>{//userID:connection.user.id
       if (err) {
         console.log(err);
         docs = [];
@@ -141,6 +141,15 @@ MongoClient.connect(url, function(err, db) {
               console.log(err);
               return;
             }
+
+            gamesCollection.find({}).toArray((err,docs)=> {//userID:connection.user.id
+              if (err) {
+                console.log(err);
+                docs = [];
+              }
+              connection.user.games = docs;
+              socket.emit('user_games_list', docs);
+            });
 
             connection.currentMap = data.data.fileID;
             connection.currentGame = data.data.gameID;
@@ -223,10 +232,29 @@ MongoClient.connect(url, function(err, db) {
         processNewGameCue();
       });
 
+      socket.on('delete_game',function(gameID){
+        db.collection('map_' + gameID).drop();
+        gamesCollection.remove({id:gameID},()=> {
+          gamesCollection.find({}).toArray((err, docs)=> {//userID:connection.user.id
+            if (err) {
+              console.log(err);
+              docs = [];
+            }
+            connection.user.games = docs;
+            socket.emit('user_games_list', docs);
+          });
+        });
+      });
+
       socket.on('load_game',function(data){
         connection.currentGame = data.data.gameID;
         connection.mapSize = data.data.size;
         socket.emit('load_game_'+data.onceID,true);
+      });
+
+      socket.on('update_plot',function(data) {
+        let mapCollection = db.collection('map_'+connection.currentGame);
+        mapCollection.updateOne({x:data.x,y:data.y,z:data.z},{ $set: { data: new Mongo.Binary(new Buffer(data.data)) }});
       });
 
       socket.on('download_map',function(data){

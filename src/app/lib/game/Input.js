@@ -193,7 +193,21 @@ export default class Input {
                 if (!gameNameEl.value.replace(/\s/g,''))
                     alert('Please fill in a game name first');
                 else {
-                    app.newGame(e.target.rel/1);
+                    app.newGame(e.target.rel/1,gameNameEl.value);
+                    closeAllUIPanels();
+                }
+            }
+        },true);
+
+        bindTap(document.getElementById('load_game_list'),e=>{
+            let rel = e.target.getAttribute('rel');
+            if (rel) {
+                if (rel == 'delete') {
+                    e.target.parentNode.parentNode.style.display = 'none';
+                    app.deleteGame(e.target.parentNode.rel);
+                }
+                else {
+                    app.loadGame(rel);
                     closeAllUIPanels();
                 }
             }

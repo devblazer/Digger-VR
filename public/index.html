@@ -103,6 +103,18 @@
       margin: 5px 0;
       border: #fff 1px solid;
     }
+    .ui-panel > ul > li > a > span {
+      float:right;
+      display:inline-block;
+      padding:2px 5px;
+      cursor:pointer;
+      margin-right:-5px;
+      margin-top:-2px;
+      margin-bottom:-18px;
+    }
+    .ui-panel > ul > li > a > span:hover {
+      color:#f00;
+    }
     .ui-panel > ul > li > a {
       padding:8px 16px;
       display:block;
@@ -124,6 +136,9 @@
       font-family: "Trebuchet MS", Verdana, sans-serif;
       min-width: 50%;
       margin: 5px 0;
+    }
+    .template {
+      display:none;
     }
   </style>
 </head>
@@ -157,14 +172,14 @@
         <li><a rel="128">128 (Small 5MB)</a></li>
         <li><a rel="256">256 (Medium 25MB)</a></li>
         <li><a rel="512">512 (Large 200MB)</a></li>
-        <li><a rel="1024">1024 (Huge 1.5GB)</a></li>
+        <!--<li><a rel="1024">1024 (Huge 1.5GB)</a></li>-->
       </ul>
     </div>
     <div class="ui-panel" id="ui_load_game">
       <a class="close" rel="ui_menu">X</a>
       <h1>Load Game</h1>
-      <ul>
-        <li class="template"></li>
+      <ul id="load_game_list">
+
       </ul>
     </div>
     <div class="ui-panel" id="ui_controls">
