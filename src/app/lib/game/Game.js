@@ -45,7 +45,8 @@ export default class Game {
         const p = this._private = {
             renderer,
             map,
-            state:new State(stateObj)
+            state:new State(stateObj),
+            shutDown: false
         };
 
         p.state.set({
@@ -66,6 +67,8 @@ export default class Game {
         const me = this;
 
         const loop = function(){
+            if (p.shutdown)
+                return;
             me.step();
             me.render();
             window.requestAnimationFrame(loop);
@@ -88,5 +91,9 @@ export default class Game {
         const cams = p.control.getCamera();
 
         p.renderer.render(p.map,cams[0], cams[1], cams[2], cams[3], cams[4]);
+    }
+
+    destroy(){
+        this._private.shutdown = true;
     }
 }

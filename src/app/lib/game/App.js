@@ -24,6 +24,8 @@ export default class App {
 
     newGame(map=null){
         const p = this._private;
+        if (p.game)
+            p.game.destroy();
 
         if (typeof map=='number') {
             p.state.set('mapSize', map);
