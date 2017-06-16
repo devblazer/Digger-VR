@@ -55,6 +55,10 @@ const MOUSE2ACTION = {
     0:'dig'
 };
 
+const DEFINABLE_ACTIONS = new Map();
+DEFINABLE_ACTIONS.set('dig','Dig');
+DEFINABLE_ACTIONS.set('up','Jump');
+
 const MOUSE_X_SPEED = 0.3;
 const MOUSE_Y_SPEED = 0.3;
 const KEY_MOVE_SPEED = 3;
@@ -103,6 +107,43 @@ const openPanel = function(panelID){
     document.getElementById(panelID).className += ' open';
 };
 
+const setRedefining = function(start=null) {
+    console.log('re',start);
+    const p = this._private;
+    p.isRedefining = start;
+
+    document.getElementById('control_define_list').innerHTML = [...DEFINABLE_ACTIONS.entries()].reduce((aggr,entry)=>{
+        let buttons = [];
+        for (let b in GAMEPADBUTTONMAP)
+            if (GAMEPADBUTTONMAP[b]==entry[0] && buttons.indexOf(b)==-1) {
+                buttons.push('GP'+b);
+            }
+        return aggr+`
+            <li><a rel="${entry[0]}">${start==entry[0]?'<i>':''}
+                ${entry[1]} = ${start==entry[0]?'press a game pad button...':(buttons.length?buttons.join(','):'undefined')}
+            ${start==entry[0]?'</i>':''}</a></li>
+        `;
+    },'');
+
+    if (p.isRedefiningLoop)
+        window.clearInterval(p.isRedefiningLoop);
+    if (start)
+        p.isRedefiningLoop = window.setInterval(()=>{
+            let gp = navigator.getGamepads();
+            if (gp.length && gp[0] && gp[0].buttons)
+                gp[0].buttons.forEach((button,ind)=>{
+                    if (button.pressed) {
+                        for (let a in GAMEPADBUTTONMAP) {
+                            if (GAMEPADBUTTONMAP[a]==start)
+                                delete(GAMEPADBUTTONMAP[a]);
+                        }
+                        GAMEPADBUTTONMAP[ind] = start;
+                        setRedefining.call(this);
+                    }
+                });
+        },25);
+};
+
 export default class Input {
     constructor(app) {
         const p = this._private = {
@@ -112,7 +153,9 @@ export default class Input {
             mouseYmoved: 0,
             mouseDown:[0,0,0,0,0,0,0,0],
             mouseActions:[],
-            axisStates: [0, 0, 0,0,0,0] // leftright, downup, forwardback
+            axisStates: [0, 0, 0,0,0,0], // leftright, downup, forwardback
+            isRedefining: null,
+            isRedefiningLoop: null
         };
         this.allowPointerLock = true;
         this.allowFullScreen = true;
@@ -155,6 +198,8 @@ export default class Input {
                 p.mouseDown[e.button] = 0;
                 p.mouseActions[MOUSE2ACTION[e.button]] = 0;
             }
+            if(p.isRedefining)
+                setRedefining.call(me);
         },true);
 
         document.addEventListener('keydown',e=>{
@@ -168,6 +213,8 @@ export default class Input {
                 p.axisStates[KEYS2AXES[KEYS[e.which || e.keyCode]]] = 0;
                 e.preventDefault();
             }
+            if(p.isRedefining)
+                setRedefining.call(me);
         },true);
 
         bindTap(document.getElementById('open_menu'),openMenu);
@@ -212,6 +259,13 @@ export default class Input {
                 }
             }
         },true);
+
+        setRedefining.call(me);
+        bindTap(document.getElementById('control_define_list'),e=>{
+            let rel = e.target.getAttribute('rel');
+            if (rel && !p.isRedefining)
+                setRedefining.call(me, rel);
+        });
     }
 
     static openMenu(){
