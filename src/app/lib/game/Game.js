@@ -46,7 +46,8 @@ export default class Game {
             renderer,
             map,
             state:new State(stateObj),
-            shutDown: false
+            shutDown: false,
+            input
         };
 
         p.state.set({
@@ -90,7 +91,7 @@ export default class Game {
         const p = this._private;
         const cams = p.control.getCamera();
 
-        p.renderer.render(p.map,cams[0], cams[1], cams[2], cams[3], cams[4]);
+        p.renderer.render(p.map,cams[0], cams[1], cams[2], cams[3], p.input.isVR);
     }
 
     destroy(){

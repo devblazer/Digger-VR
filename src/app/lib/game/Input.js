@@ -101,6 +101,12 @@ const openMenu = function(){
     openPanel('ui_menu');
 };
 
+const toggleVR = function(){
+    const p = this._private;
+    p.isVR = !p.isVR;
+    document.getElementById('toggle_vr').className = 'ui-icon-cardboard'+(p.isVR?' active':'');
+};
+
 const openPanel = function(panelID){
     closeAllUIPanels();
     menuIsOpen = true;
@@ -155,7 +161,8 @@ export default class Input {
             mouseActions:[],
             axisStates: [0, 0, 0,0,0,0], // leftright, downup, forwardback
             isRedefining: null,
-            isRedefiningLoop: null
+            isRedefiningLoop: null,
+            isVR: false
         };
         this.allowPointerLock = true;
         this.allowFullScreen = true;
@@ -218,6 +225,7 @@ export default class Input {
         },true);
 
         bindTap(document.getElementById('open_menu'),openMenu);
+        bindTap(document.getElementById('toggle_vr'),toggleVR.bind(this));
         bindTap(document.getElementById('new_game'),()=>{
             document.getElementById('game_name').value = '';
             openPanel('ui_new_game');
@@ -310,5 +318,9 @@ export default class Input {
         });
 
         return actions;
+    }
+
+    get isVR() {
+        return this._private.isVR
     }
 }
