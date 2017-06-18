@@ -40,7 +40,7 @@ export default class Plot {
             for (let y=0;y<oSize;y++) {
                 parser[0][x][y] = [];
                 for (let z=0;z<oSize;z++)
-                    parser[0][x][y][z] = tileData[x][y][z];
+                    parser[0][x][y][z] = tileData[x][y][z].type;
             }
         }
 

@@ -77,7 +77,7 @@ export default class MapGenerator {
                     for (let ix=x*8;ix<(x+1)*8;ix++){
                         for (let iy=y*8;iy<(y+1)*8;iy++){
                             for (let iz=z*8;iz<(z+1)*8;iz++){
-                                let val = p.map.get(ix,iy,iz);
+                                let val = p.map.get(ix,iy,iz).type;
                                 if (val==TILE_INDEX_DIRT)
                                     dirt++;
                                 else if (val==TILE_INDEX_GRASS)

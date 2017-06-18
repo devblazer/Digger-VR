@@ -36,7 +36,6 @@ export default class Map {
     new(callback,db,name='test'){
         const p = this._private;
         const blockSpan = Math.floor(p.size/8);
-        console.log('here');
 
         p.comms.fetch('request_map',{size:p.size},fileID=>{
             p.comms.fetch('new_game',{fileID:fileID.fileID,size:p.size,gameName:name},data=>{
@@ -135,6 +134,7 @@ export default class Map {
         const str = x+'_'+y+'_'+z;
 
         const sector = new Sector(x*8,y*8,z*8);
+
         sector.load(p.plots[x][y][z]);
         p.sectors[str] = sector;
         if (p.sectorCache.length == SECTOR_CACHE_LIMIT) {
@@ -226,7 +226,7 @@ export default class Map {
                 Math.floor(pos[2]) + VECTOR_DIR[dirInd][2] * (Math.floor(pos[2])!=pos[2] || vector[nextAxis] >= 0 ? 0 : 1)
             ];
 
-            if (this.get(nBlock[0], nBlock[1], nBlock[2])) {
+            if (this.get(nBlock[0], nBlock[1], nBlock[2]).type) {
                 found = nBlock;
                 break;
             }
@@ -238,6 +238,7 @@ export default class Map {
         const p = this._private;
         if (x<0||x>=p.size || y<0||y>=p.size || z<0||z>=p.size)
             return false;
+
         return this.getSector(x,y,z).get(x%8,y%8,z%8);
     }
     set(x,y,z,val){

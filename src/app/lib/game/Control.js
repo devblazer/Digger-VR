@@ -2,6 +2,7 @@ import glm from 'gl-matrix';
 import Orientation from './Orientation.js';
 import Util from './../Util.js';
 import State from './../State.js';
+import Cube from './Cube.js';
 
 export default class Control {
     constructor(gameState,map,camera,cameraFace,cameraUp,input){
@@ -122,7 +123,7 @@ export default class Control {
             var x = Math.floor(pos.x + SELF_COL_RADIUS);
             for (var y = Math.floor(oldy-SELF_EYE_HEIGHT); y <= Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
                 for (var z = Math.floor(oldz - SELF_COL_RADIUS); z <= Math.floor(oldz + SELF_COL_RADIUS); z++) {
-                    if (z!=oldz+SELF_COL_RADIUS && p.map.get(x, y, z)) {
+                    if (z!=oldz+SELF_COL_RADIUS && p.map.get(x, y, z).type) {
                         minorX = Math.min(minorX, x);
                     }
                 }
@@ -137,7 +138,7 @@ export default class Control {
             var x = Math.floor(pos.x - SELF_COL_RADIUS);
             for (var y = Math.floor(oldy-SELF_EYE_HEIGHT); y <= Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
                 for (var z = Math.floor(oldz - SELF_COL_RADIUS); z <= Math.floor(oldz + SELF_COL_RADIUS); z++) {
-                    if (z!=oldz+SELF_COL_RADIUS&& p.map.get(x, y, z)) {
+                    if (z!=oldz+SELF_COL_RADIUS&& p.map.get(x, y, z).type) {
                         minorX = Math.max(minorX, x);
                     }
                 }
@@ -152,7 +153,7 @@ export default class Control {
             var z = Math.floor(pos.z + SELF_COL_RADIUS);
             for (var y = Math.floor(oldy-SELF_EYE_HEIGHT); y <= Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
                 for (var x = Math.floor(pos.x - SELF_COL_RADIUS); x <= Math.floor(pos.x + SELF_COL_RADIUS); x++) {
-                    if (x!=pos.x+SELF_COL_RADIUS && p.map.get(x, y, z)) {
+                    if (x!=pos.x+SELF_COL_RADIUS && p.map.get(x, y, z).type) {
                         minorZ = Math.min(minorZ, z);
                     }
                 }
@@ -167,7 +168,7 @@ export default class Control {
             var z = Math.floor(pos.z - SELF_COL_RADIUS);
             for (var y = Math.floor(oldy-SELF_EYE_HEIGHT); y <= Math.floor(oldy-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
                 for (var x = Math.floor(pos.x - SELF_COL_RADIUS); x <= Math.floor(pos.x + SELF_COL_RADIUS); x++) {
-                    if (x!=pos.x+SELF_COL_RADIUS && p.map.get(x, y, z)) {
+                    if (x!=pos.x+SELF_COL_RADIUS && p.map.get(x, y, z).type) {
                         minorZ = Math.max(minorZ, z);
                     }
                 }
@@ -184,7 +185,7 @@ export default class Control {
                 if (x!=pos.x+SELF_COL_RADIUS) {
                     for (var y = Math.floor(pos.y - SELF_EYE_HEIGHT); y <= Math.floor(pos.y - SELF_EYE_HEIGHT+1); y++) {
                         for (var z = Math.floor(pos.z - SELF_COL_RADIUS); z <= Math.floor(pos.z + SELF_COL_RADIUS); z++) {
-                            if (z!=pos.z+SELF_COL_RADIUS && p.map.get(x, y, z)) {
+                            if (z!=pos.z+SELF_COL_RADIUS && p.map.get(x, y, z).type) {
                                 highestY = Math.max(highestY, y);
                                 //gravityStarted = false;
                             }
@@ -205,7 +206,7 @@ export default class Control {
                 if (x!=pos.x+SELF_COL_RADIUS) {
                     for (var y = Math.floor(pos.y); y <= Math.floor(pos.y-SELF_EYE_HEIGHT+SELF_COL_HEIGHT); y++) {
                         for (var z = Math.floor(pos.z - SELF_COL_RADIUS); z <= Math.floor(pos.z + SELF_COL_RADIUS); z++) {
-                            if (z!=pos.z+SELF_COL_RADIUS && p.map.get(x, y, z)) {
+                            if (z!=pos.z+SELF_COL_RADIUS && p.map.get(x, y, z).type) {
                                 lowestY = Math.min(lowestY, y);
                             }
                         }
@@ -229,7 +230,7 @@ export default class Control {
             var y = Math.floor(pos.y - SELF_EYE_HEIGHT + 0.00001);
             for (var x = Math.floor(pos.x - SELF_COL_RADIUS - 0.00001); x <= Math.floor(pos.x + SELF_COL_RADIUS + 0.00001); x++) {
                 for (var z = Math.floor(pos.z - SELF_COL_RADIUS - 0.00001); z <= Math.floor(pos.z + SELF_COL_RADIUS + 0.00001); z++) {
-                    if (p.map.get(x, y, z)) {
+                    if (p.map.get(x, y, z).type) {
                         hasBottom = {x:x,z:z};
                     }
                 }
@@ -238,7 +239,7 @@ export default class Control {
             for (var x = Math.floor(pos.x- SELF_COL_RADIUS - 0.00001); x <= Math.floor(pos.x + SELF_COL_RADIUS + 0.00001); x++) {
                 for (var y = Math.floor(pos.y - SELF_EYE_HEIGHT+1); y <= Math.floor(pos.y - SELF_EYE_HEIGHT+1+SELF_COL_HEIGHT); y++) {
                     for (var z = Math.floor(pos.z- SELF_COL_RADIUS - 0.00001); z <= Math.floor(pos.z + SELF_COL_RADIUS + 0.00001); z++) {
-                        if (p.map.get(x, y, z)) {
+                        if (p.map.get(x, y, z).type) {
                             hasTop = true;
                         }
                     }
@@ -318,9 +319,12 @@ export default class Control {
                     });
                     if (closestPoint) {
                         let block = p.map.get(closestPoint[0], closestPoint[1], closestPoint[2]);
-                        if (block && block != 4) {
-                            p.map.set(closestPoint[0], closestPoint[1], closestPoint[2], false);
-                            p.map.uploadPlotFor(closestPoint[0], closestPoint[1], closestPoint[2]);
+                        if (block && block.type && block.type != 4) {
+                            block.strength -= 1 / Cube.TILE_STRENGTH[block.type];
+                            if (block.strength <= 0) {
+                                p.map.set(closestPoint[0], closestPoint[1], closestPoint[2], false);
+                                p.map.uploadPlotFor(closestPoint[0], closestPoint[1], closestPoint[2]);
+                            }
                         }
                     }
                 }

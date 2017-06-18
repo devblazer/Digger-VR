@@ -24,6 +24,8 @@ const TILE_TEX_RENDER = [
     [4,4,4],
     [5,5,5]
 ];
+
+
 let fcnt = 0;
 export default class Tile {
     static addFace(x,y,z,size,face,type,buffer) {
@@ -68,7 +70,7 @@ export default class Tile {
     }
 
     static getTileTexForSide(ind,side){
-        return TILE_TEX_RENDER[ind][TILE_TEX_RENDER[ind].length>side?side:0];
+        return TILE_TEX_RENDER[ind][TILE_TEX_RENDER[ind].length > side ? side : 0];
     }
     static getTileTexTop(ind){
         return TILE_TEX_RENDER[ind][0];

@@ -34,7 +34,7 @@ export default class Cube extends Subscription {
         for (let x=xs;x<xs+xl;x++)
             for (let y=ys;y<ys+yl;y++) {
                 for (let z=zs;z<zs+zl;z++) {
-                    p.data[x][y][z] = val;
+                    p.data[x][y][z] = {type:val,strength:1};
                 }
             }
 
@@ -42,7 +42,7 @@ export default class Cube extends Subscription {
     }
 
     set(x,y,z,val){
-        this._private.data[x][y][z] = val;
+        this._private.data[x][y][z] = {type:val,strength:1};
         this.trigger('dataChanged');
     }
 
@@ -53,4 +53,7 @@ export default class Cube extends Subscription {
     export(){
         return this._private.data;
     }
+
+    static TILES = ['empty','dirt','grass','stone','impenetrable'];
+    static TILE_STRENGTH = [0,1,1,2,-1];
 }
