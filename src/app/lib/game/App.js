@@ -1,9 +1,10 @@
 import State from './../State.js';
 import Map from './Map.js';
-import MapGenerator from './../generation/MapGenerator.js';
 import Game from './Game.js';
 import Renderer from './../render/Renderer.js';
 import Comms from './../data/Comms.js';
+import Input from './Input.js';
+import IndexedDB from './../data/IndexedDB.js';
 
 export default class App {
     constructor(comms){
@@ -12,26 +13,70 @@ export default class App {
             state:new State({
             }),
             game:null,
-            comms
+            comms,
+            input:new Input(this),
+            gamesList:[],
+            db: new IndexedDB('Digger-VR')
         };
         p.state.set({
             mapSize:32
         });
         p.renderer = new Renderer(p.state.export());
+
+        comms.on('user_games_list',gamesList=>{
+            p.gamesList = gamesList;
+            document.getElementById('load_game_list').innerHTML = gamesList.reduce((aggr,game)=>{
+                return aggr+`<li><a rel="${game.id}">${game.name} (${game.mapSize})<span rel="delete">X</span></a></li>`;
+            },'');
+        });
+
+        /*p.db = new IndexedDB('test',()=>{
+            p.db.createTable('t1',()=>{
+                p.db.t1.save({id:'a'+Math.random(),x:0,y:0,z:0,data:'tester1'},()=>{console.log('saved')});
+            });
+        });*/
     }
 
-    newGame(map=null){
+    newGame(map=null,gameName='test'){
         const p = this._private;
-        let mapSize;
+        if (p.game)
+            p.game.destroy();
+
+        if (typeof map=='number') {
+            p.state.set('mapSize', map);
+            map = null;
+        }
 
         if (!map) {
-            map = new Map(comms,p.state.get('mapSize'));
-            const gen = new MapGenerator(map);
-            console.log(gen.autoGenerate());
+            map = new Map(p.comms, p.state.get('mapSize'));
+            map.new(()=> {
+                p.game = new Game(p.state.export(),p.renderer,map,p.input);
+            },p.db,gameName);
         }
-        else
-            p.state.set('mapSize',map.getSize());
+        else {
+            p.state.set('mapSize', map.getSize());
+            p.game = new Game(p.state.export(), p.renderer, map, p.input);
+        }
+    }
 
-        p.game = new Game(p.state.export(),p.renderer,map);
+    loadGame(gameID){
+        const p = this._private;
+        let game = p.gamesList.filter(game=>{
+            return game.id == gameID;
+        })[0];
+
+        if (p.game)
+            p.game.destroy();
+
+        p.state.set('mapSize', game.mapSize);
+
+        let map = new Map(p.comms, p.state.get('mapSize'));
+        map.load(game.id,p.db,()=> {
+            p.game = new Game(p.state.export(),p.renderer,map,p.input);
+        });
+    }
+
+    deleteGame(gameID) {
+        this._private.comms.emit('delete_game',gameID);
     }
 }

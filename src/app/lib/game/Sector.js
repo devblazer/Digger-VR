@@ -42,6 +42,7 @@ export default class Sector extends Cube {
             ...this._private,
             needsOptimisation:true,
             needsRender:true,
+            needsSave:false,
             optimisedData:null,
             renderData:null,
             tracker:{check:0,add:0},

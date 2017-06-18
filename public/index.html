@@ -24,10 +24,173 @@
       font-size:12px;
       border:#000 solid 1px;
     }
+    #ui_taskbar {
+      display:block;
+      top:5%;
+      width:30%;
+      max-width:500px;
+      margin:0 auto;
+    }
+    #ui_taskbar > ul {
+      width:100%;
+      list-style:none;
+      margin:0 auto;
+      padding:0;
+    }
+    #ui_taskbar > ul > li {
+      width:30.33%;
+      margin:1.5%;
+      float:left;
+      display:block;
+    }
+    #ui_taskbar > ul > li > a {
+      width:100%;
+      padding-bottom:100%;
+      background:url(/gfx/ui_header_icons.png) no-repeat;
+      background-size:300%;
+      cursor:pointer;
+      opacity:0.4;
+      display:block;
+    }
+    #ui_taskbar > ul > li > a.active {
+      opacity:0.8;
+    }
+    #ui_taskbar > ul > li > a:hover {
+      opacity:1;
+    }
+    #ui_taskbar > ul > li > .ui-icon-touch {
+      background-position:left;
+    }
+    #ui_taskbar > ul > li > .ui-icon-gear {
+      background-position:center;
+    }
+    #ui_taskbar > ul > li > .ui-icon-cardboard {
+      background-position:right;
+    }
+    .ui-panel {
+      display:none;
+      width:90%;
+      max-width:600px;
+      box-sizing: border-box;
+      background-color:rgba(0,0,0,0.7);
+      border:#fff 1px solid;
+      padding:5px;
+      overflow:auto;
+      color:#fff;
+      font-size:24px;
+    }
+    .ui-panel.open {
+      display:block;
+      margin:0 auto;
+    }
+    .ui-panel > a {
+      float:right;
+      display:inline-block;
+      padding:2px 5px;
+      cursor:pointer;
+      margin-right:-5px;
+      margin-top:-5px;
+      margin-bottom:-18px;
+    }
+    .ui-panel > ul {
+      padding:0;
+      list-style:none;
+      margin:25px 0 -5px;
+    }
+    .ui-panel > ul > li {
+      display: block;
+      padding: 0;
+      margin: 5px 0;
+      border: #fff 1px solid;
+    }
+    .ui-panel > ul > li > a > span {
+      float:right;
+      display:inline-block;
+      padding:2px 5px;
+      cursor:pointer;
+      margin-right:-5px;
+      margin-top:-2px;
+      margin-bottom:-18px;
+    }
+    .ui-panel > ul > li > a > span:hover {
+      color:#f00;
+    }
+    .ui-panel > ul > li > a {
+      padding:8px 16px;
+      display:block;
+      cursor:pointer;
+      text-align:center;
+    }
+    .ui-panel > ul > li > a:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+    .ui-panel > label {
+      display:block;
+    }
+    .ui-panel > h1 {
+      margin:0 0 0.5em;
+    }
+    .ui-panel > input {
+      padding: 5px 10px;
+      font-size: 14px;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      min-width: 50%;
+      margin: 5px 0;
+    }
+    .template {
+      display:none;
+    }
   </style>
 </head>
 <body>
   <!--<div id="debugger"></div>-->
+  <div style="position: absolute;width:100%;height:0;">
+    <div id="ui_taskbar">
+      <ul>
+        <li><a id="toggle_touch" class="ui-icon-touch"></a></li>
+        <li><a id="open_menu" class="ui-icon-gear"></a></li>
+        <li><a id="toggle_vr" class="ui-icon-cardboard"></a></li>
+      </ul>
+    </div>
+    <div class="ui-panel" id="ui_menu">
+      <a class="close">X</a>
+      <ul class="buttons">
+        <li><a id="new_game">New Game</a></li>
+        <li><a id="load_game">Load Game</a></li>
+        <li><a id="controls">Controls</a></li>
+        <li><a id="settings">Settings</a></li>
+      </ul>
+    </div>
+    <div class="ui-panel" id="ui_new_game">
+      <a class="close" rel="ui_menu">X</a>
+      <h1>New Game</h1>
+      <label>Game name:</label>
+      <input type="text" id="game_name" />
+      <label style="margin:20px 0 -15px">Map size (larger = bigger download)</label>
+      <ul id="map_size">
+        <li><a rel="64">64 (For testing)</a></li>
+        <li><a rel="128">128 (Small 5MB)</a></li>
+        <li><a rel="256">256 (Medium 25MB)</a></li>
+        <li><a rel="512">512 (Large 200MB)</a></li>
+        <!--<li><a rel="1024">1024 (Huge 1.5GB)</a></li>-->
+      </ul>
+    </div>
+    <div class="ui-panel" id="ui_load_game">
+      <a class="close" rel="ui_menu">X</a>
+      <h1>Load Game</h1>
+      <ul id="load_game_list">
+
+      </ul>
+    </div>
+    <div class="ui-panel" id="ui_controls">
+      <a class="close" rel="ui_menu">X</a>
+      <h1>Controls</h1>
+      <p>For now, to keep things simple, only game pad buttons can be defined.  The pc controls are wasd for movement, space for jump and LMB for dig.</p>
+      <ul id="control_define_list">
+
+      </ul>
+    </div>
+  </div>
   <script src="build/bundle.js"></script>
 </body>
 </html>

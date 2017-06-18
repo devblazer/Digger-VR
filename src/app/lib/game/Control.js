@@ -1,11 +1,10 @@
 import glm from 'gl-matrix';
 import Orientation from './Orientation.js';
-import Input from './Input.js';
 import Util from './../Util.js';
 import State from './../State.js';
 
 export default class Control {
-    constructor(gameState,map,camera,cameraFace,cameraUp){
+    constructor(gameState,map,camera,cameraFace,cameraUp,input){
         const p = this._private = {
             orientation:new Orientation(),
             gameState,
@@ -20,7 +19,7 @@ export default class Control {
             cameraUp,
             cameraForward:[0,0,0],
             cameraRight:[0,0,0],
-            input:new Input()
+            input
         };
         this.normalizeCameraVectors();
     }
@@ -319,8 +318,10 @@ export default class Control {
                     });
                     if (closestPoint) {
                         let block = p.map.get(closestPoint[0], closestPoint[1], closestPoint[2]);
-                        if (block && block != 4)
+                        if (block && block != 4) {
                             p.map.set(closestPoint[0], closestPoint[1], closestPoint[2], false);
+                            p.map.uploadPlotFor(closestPoint[0], closestPoint[1], closestPoint[2]);
+                        }
                     }
                 }
                 p.continuousDigging = true;

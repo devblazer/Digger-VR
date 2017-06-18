@@ -2,7 +2,7 @@ import State from './../State.js';
 import Control from './Control.js';
 
 export default class Game {
-    constructor(appState,renderer,map){
+    constructor(appState,renderer,map,input){
         const stateObj = {
             SELF_COL_RADIUS:0.75,
             SELF_COL_HEIGHT:2.5,
@@ -45,7 +45,9 @@ export default class Game {
         const p = this._private = {
             renderer,
             map,
-            state:new State(stateObj)
+            state:new State(stateObj),
+            shutDown: false,
+            input
         };
 
         p.state.set({
@@ -56,7 +58,8 @@ export default class Game {
             map,
             [appState.mapSize / 2, appState.mapSize - 5, appState.mapSize / 2],
             [0, 0, -1],
-            [0, 1, 0]
+            [0, 1, 0],
+            input
         );
 
         p.state.set('gameActive',true);
@@ -65,6 +68,8 @@ export default class Game {
         const me = this;
 
         const loop = function(){
+            if (p.shutdown)
+                return;
             me.step();
             me.render();
             window.requestAnimationFrame(loop);
@@ -86,6 +91,10 @@ export default class Game {
         const p = this._private;
         const cams = p.control.getCamera();
 
-        p.renderer.render(p.map,cams[0], cams[1], cams[2], cams[3], cams[4]);
+        p.renderer.render(p.map,cams[0], cams[1], cams[2], cams[3], p.input.isVR);
+    }
+
+    destroy(){
+        this._private.shutdown = true;
     }
 }
