@@ -16,7 +16,7 @@ const VECTOR_DIR = [
 ];
 
 export default class Map {
-    constructor(comms,size=64) {
+    constructor(comms,size,setProgress) {
         size -= size%8;
         this._private = {
             size,
@@ -26,7 +26,8 @@ export default class Map {
             plots:[],
             sectorCache:[],
             comms,
-            mapTable:null
+            mapTable:null,
+            setProgress
         };
         this.autoSave = true;
 
@@ -36,6 +37,8 @@ export default class Map {
     new(callback,db,name='test'){
         const p = this._private;
         const blockSpan = Math.floor(p.size/8);
+
+        p.setProgress(0);
 
         p.comms.fetch('request_map',{size:p.size},fileID=>{
             p.comms.fetch('new_game',{fileID:fileID.fileID,size:p.size,gameName:name},data=>{
@@ -55,6 +58,7 @@ export default class Map {
                             mapTable.save({id:x+'_'+y+'_'+z,x,y,z,data:buffer});
                         }
                         blockInd++;
+                        p.setProgress(blockInd/blockCount*100);
                     },callback);
                 });
             });
@@ -64,6 +68,8 @@ export default class Map {
     load(gameID,db,callback) {
         const p = this._private;
         const blockSpan = Math.floor(p.size/8);
+
+        p.setProgress(0);
 
         p.comms.fetch('load_game',{gameID,size:p.size},data=>{
             console.log('Loading gameID: '+gameID);
@@ -76,6 +82,7 @@ export default class Map {
                     if (localExists) {
                         console.log('load from local');
 
+                        p.setProgress(50);
                         mapTable.readEach(data=>{
                             this.importPlot(data.x, data.y, data.z, data.data);
                         },()=>{
@@ -97,6 +104,7 @@ export default class Map {
                                 mapTable.save({id:x+'_'+y+'_'+z,x,y,z,data:buffer});
                             }
                             blockInd++;
+                            p.setProgress(blockInd/blockCount*100);
                         }, callback);
                     }
                 });

@@ -18,7 +18,8 @@ export default class App {
             input: new Input(this),
             gamesList:[],
             db: new IndexedDB('Digger-VR'),
-            sound: new Sound()
+            sound: new Sound(),
+            lastProgress:0
         };
         p.state.set({
             mapSize:32
@@ -31,12 +32,6 @@ export default class App {
                 return aggr+`<li><a rel="${game.id}">${game.name} (${game.mapSize})<span rel="delete">X</span></a></li>`;
             },'');
         });
-
-        /*p.db = new IndexedDB('test',()=>{
-            p.db.createTable('t1',()=>{
-                p.db.t1.save({id:'a'+Math.random(),x:0,y:0,z:0,data:'tester1'},()=>{console.log('saved')});
-            });
-        });*/
     }
 
     newGame(map=null,gameName='test'){
@@ -50,13 +45,15 @@ export default class App {
         }
 
         if (!map) {
-            map = new Map(p.comms, p.state.get('mapSize'));
+            map = new Map(p.comms, p.state.get('mapSize'),this.setProgress.bind(this));
             map.new(()=> {
+                this.setProgress();
                 p.game = new Game(p.state.export(),p.renderer,map,p.input,p.sound);
             },p.db,gameName);
         }
         else {
             p.state.set('mapSize', map.getSize());
+            this.setProgress();
             p.game = new Game(p.state.export(), p.renderer, map, p.input,p.sound);
         }
     }
@@ -72,13 +69,29 @@ export default class App {
 
         p.state.set('mapSize', game.mapSize);
 
-        let map = new Map(p.comms, p.state.get('mapSize'));
+        let map = new Map(p.comms, p.state.get('mapSize'),this.setProgress.bind(this));
         map.load(game.id,p.db,()=> {
+            this.setProgress();
             p.game = new Game(p.state.export(),p.renderer,map,p.input,p.sound);
         });
     }
 
     deleteGame(gameID) {
         this._private.comms.emit('delete_game',gameID);
+    }
+
+    setProgress(val=null) {
+        const p = this._private;
+
+        if (val && p.lastProgress > (new Date()).getTime() - 100)
+            return;
+
+        p.lastProgress = (new Date()).getTime();
+        if (val===null)
+            document.getElementById('progress_bar').style.display = 'none';
+        else {
+            document.getElementById('progress_bar').style.display = 'block';
+            document.getElementById('progress_bar_inner').style.width = Math.floor(val*100)/100+'%';
+        }
     }
 }

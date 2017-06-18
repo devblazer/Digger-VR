@@ -26,6 +26,7 @@
     }
     #ui_taskbar {
       display:block;
+      padding-top:1px;
       top:5%;
       width:30%;
       max-width:500px;
@@ -137,6 +138,21 @@
       min-width: 50%;
       margin: 5px 0;
     }
+    #progress_bar {
+      height:2vw;
+      margin-top: 40vh;
+      background-color: rgba(255,255,255,0.2);
+      border:#fff 1px solid;
+      border-radius: 1vw;
+      display:none;
+      overflow:hidden;
+    }
+    #progress_bar > div {
+      height: 2vw;
+      background-color: rgba(150,200,255,0.7);
+      border-radius: 0.7vw;
+      width:0%;
+    }
     .template {
       display:none;
     }
@@ -151,6 +167,9 @@
         <li><a id="open_menu" class="ui-icon-gear"></a></li>
         <li><a id="toggle_vr" class="ui-icon-cardboard"></a></li>
       </ul>
+      <div id="progress_bar">
+        <div id="progress_bar_inner"></div>
+      </div>
     </div>
     <div class="ui-panel" id="ui_menu">
       <a class="close">X</a>
