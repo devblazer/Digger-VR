@@ -25,14 +25,15 @@ export default class Map {
             sectors:[],
             plots:[],
             sectorCache:[],
-            comms
+            comms,
+            mapTable:null
         };
         this.autoSave = true;
 
         this.init();
     }
 
-    new(callback,name='test'){
+    new(callback,db,name='test'){
         const p = this._private;
         const blockSpan = Math.floor(p.size/8);
         console.log('here');
@@ -40,44 +41,67 @@ export default class Map {
         p.comms.fetch('request_map',{size:p.size},fileID=>{
             p.comms.fetch('new_game',{fileID:fileID.fileID,size:p.size,gameName:name},data=>{
                 console.log('Loading gameID: '+data.gameID);
+                db.createTable('map_'+data.gameID,()=>{
+                    let mapTable = p.mapTable = db['map_'+data.gameID];
+                    let blockInd = 0;
+                    let blockCount = Math.pow(p.size/8,3);
 
-                let blockInd = 0;
-                let blockCount = Math.pow(p.size/8,3);
-
-                p.comms.fetch('download_map',null,data=>{
-                    let buffer = new Uint8Array(data.d);
-                    if (buffer.length) {
-                        let z = data.z;//Math.floor(blockInd / (blockSpan*blockSpan));
-                        let y = data.y;//Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
-                        let x = data.x;//blockInd % blockSpan;
-                        this.importPlot(x,y,z,buffer);
-                    }
-                    blockInd++;
-                },callback);
+                    p.comms.fetch('download_map',null,data=>{
+                        let buffer = new Uint8Array(data.d);
+                        if (buffer.length) {
+                            let z = data.z;//Math.floor(blockInd / (blockSpan*blockSpan));
+                            let y = data.y;//Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
+                            let x = data.x;//blockInd % blockSpan;
+                            this.importPlot(x,y,z,buffer);
+                            mapTable.save({id:x+'_'+y+'_'+z,x,y,z,data:buffer});
+                        }
+                        blockInd++;
+                    },callback);
+                });
             });
         });
     }
 
-    load(gameID,callback) {
+    load(gameID,db,callback) {
         const p = this._private;
         const blockSpan = Math.floor(p.size/8);
 
         p.comms.fetch('load_game',{gameID,size:p.size},data=>{
             console.log('Loading gameID: '+gameID);
 
-            let blockInd = 0;
-            let blockCount = Math.pow(p.size/8,3);
+            db.createTable('map_'+gameID,()=>{
+                let mapTable = p.mapTable = db['map_'+gameID];
+                mapTable.read('0_0_0',res=>{
+                    let localExists = !!res;
 
-            p.comms.fetch('download_map',null,data=>{
-                let buffer = new Uint8Array(data.d);
-                if (buffer.length) {
-                    let z = data.z;//Math.floor(blockInd / (blockSpan*blockSpan));
-                    let y = data.y;//Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
-                    let x = data.x;//blockInd % blockSpan;
-                    this.importPlot(x,y,z,buffer);
-                }
-                blockInd++;
-            },callback);
+                    if (localExists) {
+                        console.log('load from local');
+
+                        mapTable.readEach(data=>{
+                            this.importPlot(data.x, data.y, data.z, data.data);
+                        },()=>{
+                            callback();
+                        });
+                    }
+                    else {
+                        console.log('load from server');
+                        let blockInd = 0;
+                        let blockCount = Math.pow(p.size / 8, 3);
+
+                        p.comms.fetch('download_map', null, data=> {
+                            let buffer = new Uint8Array(data.d);
+                            if (buffer.length) {
+                                let z = data.z;//Math.floor(blockInd / (blockSpan*blockSpan));
+                                let y = data.y;//Math.floor((blockInd - (z*blockSpan*blockSpan)) / blockSpan);
+                                let x = data.x;//blockInd % blockSpan;
+                                this.importPlot(x, y, z, buffer);
+                                mapTable.save({id:x+'_'+y+'_'+z,x,y,z,data:buffer});
+                            }
+                            blockInd++;
+                        }, callback);
+                    }
+                });
+            });
         });
     }
 
@@ -134,7 +158,9 @@ export default class Map {
         let sz = Math.floor(z/8);
         let plot = p.plots[sx][sy][sz];
         this.getSector(x,y,z).save(plot);
-        p.comms.emit('update_plot',{x:sx,y:sy,z:sz,data:plot.export()});
+        let buffer = plot.export();
+        p.mapTable.save({id:sx+'_'+sy+'_'+sz,x:sx,y:sy,z:sz,data:buffer});
+        p.comms.emit('update_plot',{x:sx,y:sy,z:sz,data:buffer});
     }
 
     findIntersect(origin,vector,limit) {

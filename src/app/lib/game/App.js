@@ -16,6 +16,7 @@ export default class App {
             comms,
             input:new Input(this),
             gamesList:[],
+            db: new IndexedDB('test')
         };
         p.state.set({
             mapSize:32
@@ -29,11 +30,11 @@ export default class App {
             },'');
         });
 
-        p.db = new IndexedDB('test',()=>{
+        /*p.db = new IndexedDB('test',()=>{
             p.db.createTable('t1',()=>{
                 p.db.t1.save({id:'a'+Math.random(),x:0,y:0,z:0,data:'tester1'},()=>{console.log('saved')});
             });
-        });
+        });*/
     }
 
     newGame(map=null,gameName='test'){
@@ -50,7 +51,7 @@ export default class App {
             map = new Map(p.comms, p.state.get('mapSize'));
             map.new(()=> {
                 p.game = new Game(p.state.export(),p.renderer,map,p.input);
-            },gameName);
+            },p.db,gameName);
         }
         else {
             p.state.set('mapSize', map.getSize());
@@ -70,7 +71,7 @@ export default class App {
         p.state.set('mapSize', game.mapSize);
 
         let map = new Map(p.comms, p.state.get('mapSize'));
-        map.load(game.id,()=> {
+        map.load(game.id,p.db,()=> {
             p.game = new Game(p.state.export(),p.renderer,map,p.input);
         });
     }
