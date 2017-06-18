@@ -114,7 +114,6 @@ const openPanel = function(panelID){
 };
 
 const setRedefining = function(start=null) {
-    console.log('re',start);
     const p = this._private;
     p.isRedefining = start;
 

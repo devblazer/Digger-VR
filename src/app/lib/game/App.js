@@ -1,10 +1,10 @@
 import State from './../State.js';
 import Map from './Map.js';
-import MapGenerator from './../generation/MapGenerator.js';
 import Game from './Game.js';
 import Renderer from './../render/Renderer.js';
 import Comms from './../data/Comms.js';
 import Input from './Input.js';
+import IndexedDB from './../data/IndexedDB.js';
 
 export default class App {
     constructor(comms){
@@ -15,7 +15,7 @@ export default class App {
             game:null,
             comms,
             input:new Input(this),
-            gamesList:[]
+            gamesList:[],
         };
         p.state.set({
             mapSize:32
@@ -28,6 +28,12 @@ export default class App {
                 return aggr+`<li><a rel="${game.id}">${game.name} (${game.mapSize})<span rel="delete">X</span></a></li>`;
             },'');
         });
+
+        p.db = new IndexedDB('test',()=>{
+            p.db.createTable('t1',()=>{
+                p.db.t1.save({id:'a'+Math.random(),x:0,y:0,z:0,data:'tester1'},()=>{console.log('saved')});
+            });
+        });
     }
 
     newGame(map=null,gameName='test'){
@@ -37,7 +43,6 @@ export default class App {
 
         if (typeof map=='number') {
             p.state.set('mapSize', map);
-            console.log(map);
             map = null;
         }
 
