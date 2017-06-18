@@ -16,7 +16,7 @@ export default class App {
             comms,
             input:new Input(this),
             gamesList:[],
-            db: new IndexedDB('test')
+            db: new IndexedDB('Digger-VR')
         };
         p.state.set({
             mapSize:32

@@ -5,6 +5,7 @@ node_modules
 .idea/*
 public/build/*
 serverDeploy/*
-private/*
+private/db/*
+private/maps/generated/*/*
 npm-debug.log*
 *.mapgit pu

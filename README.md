@@ -2,13 +2,23 @@
 
 A browser based 'Minecraft' meets 'Terraria' kind of idea with things like gamepad and VR support thrown in the mix.
 
-**To run:**
-clone the repo then run:
+**Setup:**
 
-npm install
-npm start
+clone the repo then run: 'npm install'
 
-Navigate to localhost:3000
+You will need mongo installed and setup.  If you have your own mongo instance running on the default port, then thats fine.
+Otherwise you will need to run: 'npm run db'
+
+Now that the db is started, you can run: 'npm run start'
+
+Navigate to localhost:3000 to play.
+
+Please note that for performance reasons, maps need to be pre-generated server side (node) before you can start any new games.
+When you click 'new game' for a particular map size, the server picks out an existing pre-generated map of that size and serves a copy of it to the client, rather than generating a new one from scratch, which can take very long.
+For this reason you will have to pre-generate at least one map of the size you intend to play, before you can begin.
+
+To generate a map: 'node ./src/node/mapGen.js --gen=64'
+Substitute 64 for the map size in question.  Currently tested and working: 64, 128, 256, 512
   
 **Current working feature set:**
 
@@ -16,35 +26,28 @@ Navigate to localhost:3000
 + Collision detection
 + Digging
 + Grass / Dirt / Rocks - block types
-+ World edges work fixed, except for top
-+ World size upto 1024 x 1024 x 1024 (currently set to 64 for testing)
++ World edges working, except for top
++ World size upto 512 x 512 x 512
 + Mouse and keyboard support
 + Gamepad / Controller support
 + Google cardboard with head tracking support
-(Runs in VR mode automatically if on a device with direction sensor)
-(You will need a controller to move while in VR mode)
++ Server side map pre-generation
++ New game, Loading, Deleting and 'live' save game syncing
++ Local save of world data for fast loading (indexedDB)
++ Basic UI + menu (already touch enabled)
 
 **Roadmap:**
 
-+ ~~Cardboard barrel distortion~~
-+ ~~Impenetrable blocks at bottom of map~~
-+ ~~Perform 'area' directional digging if hold down dig button~~
-+ ~~Support upto 2048 maps (browser cant handle more than 1024)~~
-+ Map generation progress indicator
-+ Saving and loading of maps to a server
-+ Keeping map changes (digging) in sync with a server
-
-+ ~~Code refactor~~
-+ Unit tests
-
-+ Add camera tilt for VR mode
 + Block break strength
++ Basic sounds effects
++ Map generation progress indicator
++ User accounts + Login
++ Add camera tilt for VR mode
 + Add switch between torch/pickaxe
 + Turn god lighting into sun lighting
 + Add rudimentary diffuse lighting
 + Add torch placement
 + Block placement
-
-+ UI + menu
++ Touch controls (already work for menu)
 
 + More to be decided on...

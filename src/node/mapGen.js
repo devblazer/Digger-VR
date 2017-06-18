@@ -5,22 +5,17 @@ var fs = require('fs');
 var path = require('path');
 var crypto = require('crypto');
 
-var app = express();
-var publicPath = path.resolve(__dirname, '../public');
-
-app.use(express.static(publicPath));
-
-var Map = require('./../lib/game/Map.js').default;
+var Map = require('./../app/lib/game/Map.js').default;
 
 if (process.argv[2] && process.argv[2].split('=')[0] == '--gen') {
     var size = process.argv[2].split('=')[1]/1;
-    var MapGenerator = require('./../lib/generation/MapGenerator.js').default;
+    var MapGenerator = require('./../app/lib/generation/MapGenerator.js').default;
     var map = new Map(null,size);
     var gen = new MapGenerator(map);
     console.log(gen.autoGenerate());
 
     var name = crypto.randomBytes(32).toString('hex').substr(0,8);
-    var stream = fs.createWriteStream('./../../../private/maps/generated/size_'+size+'/map_'+name+'.map',{encoding:'ascii'});
+    var stream = fs.createWriteStream(path.resolve(__dirname, './../../private/maps/generated/size_'+size+'/map_'+name+'.map'),{encoding:'ascii'});
     stream.once('open', function (fd) {
         var total = 0;
         var lots = 0;
