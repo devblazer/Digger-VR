@@ -37,33 +37,8 @@ Substitute 64 for the map size in question.  Currently tested and working: 64, 1
 + Local save of world data for fast loading (indexedDB)
 + Basic UI + menu (already touch enabled)
 
-**Soon to be deployed (almost working) feature set:**
-
-<<<<<<< HEAD
-+ Menu system for creating, saving and loading games
-+ Ability to define mouse / keyboard / gamepad controls
-+ Server side pre-generated maps
-+ Client/Server map syncing
-+ Offline storage of map data
-+ Manual toggle of VR mode
-
 **Roadmap:**
 
-+ Add camera tilt for VR mode
-+ Block break strength
-+ Block placement
-+ Inventory
-+ Turn god lighting into sun lighting
-+ Add rudimentary diffuse lighting
-+ Add torch placement
-+ Add switch between torch/pickaxe
-+ Add sound effects
-+ Add digging visuals
-+ More block types
-+ Water
-+ Lava
-+ Hp implementation
-=======
 + Block break strength
 + Basic sounds effects
 + Map generation progress indicator
@@ -72,9 +47,14 @@ Substitute 64 for the map size in question.  Currently tested and working: 64, 1
 + Add switch between torch/pickaxe
 + Turn god lighting into sun lighting
 + Add rudimentary diffuse lighting
++ Add digging visuals
++ Inventory
 + Add torch placement
 + Block placement
 + Touch controls (already work for menu)
->>>>>>> ui
++ More block types
++ Water
++ Lava
++ Hp implementation
 
 + More to be decided on...
