@@ -4,19 +4,21 @@ import Game from './Game.js';
 import Renderer from './../render/Renderer.js';
 import Comms from './../data/Comms.js';
 import Input from './Input.js';
+import Sound from './Sound.js';
 import IndexedDB from './../data/IndexedDB.js';
 
 export default class App {
     constructor(comms){
         comms = comms || new Comms();
         const p = this._private = {
-            state:new State({
+            state: new State({
             }),
-            game:null,
+            game: null,
             comms,
-            input:new Input(this),
+            input: new Input(this),
             gamesList:[],
-            db: new IndexedDB('Digger-VR')
+            db: new IndexedDB('Digger-VR'),
+            sound: new Sound()
         };
         p.state.set({
             mapSize:32
@@ -50,12 +52,12 @@ export default class App {
         if (!map) {
             map = new Map(p.comms, p.state.get('mapSize'));
             map.new(()=> {
-                p.game = new Game(p.state.export(),p.renderer,map,p.input);
+                p.game = new Game(p.state.export(),p.renderer,map,p.input,p.sound);
             },p.db,gameName);
         }
         else {
             p.state.set('mapSize', map.getSize());
-            p.game = new Game(p.state.export(), p.renderer, map, p.input);
+            p.game = new Game(p.state.export(), p.renderer, map, p.input,p.sound);
         }
     }
 
@@ -72,7 +74,7 @@ export default class App {
 
         let map = new Map(p.comms, p.state.get('mapSize'));
         map.load(game.id,p.db,()=> {
-            p.game = new Game(p.state.export(),p.renderer,map,p.input);
+            p.game = new Game(p.state.export(),p.renderer,map,p.input,p.sound);
         });
     }
 

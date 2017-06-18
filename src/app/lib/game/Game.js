@@ -2,13 +2,13 @@ import State from './../State.js';
 import Control from './Control.js';
 
 export default class Game {
-    constructor(appState,renderer,map,input){
+    constructor(appState,renderer,map,input,sound){
         const stateObj = {
             SELF_COL_RADIUS:0.75,
             SELF_COL_HEIGHT:2.5,
             SELF_EYE_HEIGHT:2,
             GRAVITY:0.5,
-            JUMP_VELOCITY:10,
+            JUMP_VELOCITY:10.5,
             MAX_FALL_SPEED:18,
             MOVE_SPEED:1.6,
             DIG_RATE:0.4,
@@ -59,7 +59,8 @@ export default class Game {
             [appState.mapSize / 2, appState.mapSize - 5, appState.mapSize / 2],
             [0, 0, -1],
             [0, 1, 0],
-            input
+            input,
+            sound
         );
 
         p.state.set('gameActive',true);

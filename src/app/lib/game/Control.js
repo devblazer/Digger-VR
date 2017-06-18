@@ -5,7 +5,7 @@ import State from './../State.js';
 import Cube from './Cube.js';
 
 export default class Control {
-    constructor(gameState,map,camera,cameraFace,cameraUp,input){
+    constructor(gameState,map,camera,cameraFace,cameraUp,input,sound){
         const p = this._private = {
             orientation:new Orientation(),
             gameState,
@@ -20,7 +20,8 @@ export default class Control {
             cameraUp,
             cameraForward:[0,0,0],
             cameraRight:[0,0,0],
-            input
+            input,
+            sound
         };
         this.normalizeCameraVectors();
     }
@@ -85,6 +86,7 @@ export default class Control {
         glm.vec3.add(posNew, posNew, t);
 
         if (p.canJump && actions.moveY > 0) {
+            p.sound.play('jump');
             p.yVelocity += p.gameState.get('JUMP_VELOCITY');
             p.canJump = false;
         }
@@ -196,6 +198,8 @@ export default class Control {
             if (highestY != 0){//} && Math.floor(highestY + SELF_EYE_HEIGHT+1) - pos.y < 1) {
                 pos.y = Math.floor(highestY + SELF_EYE_HEIGHT+1);
                 p.canJump = true;
+                if (p.yVelocity < -8)
+                    p.sound.play('land',Math.min(1,-p.yVelocity/25));
                 p.yVelocity = 0;
             }
         }
@@ -262,6 +266,13 @@ export default class Control {
         pos.x = Math.min(pos.x, MAP_SIZE-SELF_COL_RADIUS);
         pos.z = Math.min(pos.z, MAP_SIZE-SELF_COL_RADIUS);
 
+        if (p.canJump && (p.camera[0]!=pos.x || p.camera[2]!=pos.z)) {
+            p.sound.play('walk');
+        }
+        else {
+            p.sound.stop('walk');
+        }
+
         p.camera[0] = pos.x;
         p.camera[1] = pos.y;
         p.camera[2] = pos.z;
@@ -282,6 +293,8 @@ export default class Control {
             while ((new Date()).getTime() - p.lastDig >= (DIG_RATE*1000)) {
                 p.lastDig += (DIG_RATE*1000);
                 let res = [];
+
+                p.sound.play('dig');
 
                 if (!p.continuousDigging)
                     res.push(p.map.findIntersect(p.camera,p.cameraFace,4));
@@ -322,6 +335,7 @@ export default class Control {
                         if (block && block.type && block.type != 4) {
                             block.strength -= 1 / Cube.TILE_STRENGTH[block.type];
                             if (block.strength <= 0) {
+                                //p.sound.play('crumble'); sounds really shit
                                 p.map.set(closestPoint[0], closestPoint[1], closestPoint[2], false);
                                 p.map.uploadPlotFor(closestPoint[0], closestPoint[1], closestPoint[2]);
                             }
