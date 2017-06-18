@@ -36,12 +36,12 @@ Substitute 64 for the map size in question.  Currently tested and working: 64, 1
 + New game, Loading, Deleting and 'live' save game syncing
 + Local save of world data for fast loading (indexedDB)
 + Basic UI + menu (already touch enabled)
++ Variable block break strength
++ Basic sounds effects
++ Basic new/load game progress indicator
 
 **Roadmap:**
 
-+ Block break strength
-+ Basic sounds effects
-+ Map generation progress indicator
 + User accounts + Login
 + Add camera tilt for VR mode
 + Add switch between torch/pickaxe
