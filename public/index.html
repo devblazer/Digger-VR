@@ -153,6 +153,12 @@
       border-radius: 0.7vw;
       width:0%;
     }
+    .hide-ui-taskbar ul {
+      padding-bottom:30.33% !important;
+    }
+    .hide-ui-taskbar li {
+      display:none !important;
+    }
     .template {
       display:none;
     }
@@ -161,7 +167,7 @@
 <body>
   <!--<div id="debugger"></div>-->
   <div style="position: absolute;width:100%;height:0;">
-    <div id="ui_taskbar">
+    <div id="ui_taskbar" class="hide-ui-taskbar">
       <ul>
         <li><a id="toggle_touch" class="ui-icon-touch"></a></li>
         <li><a id="open_menu" class="ui-icon-gear"></a></li>
@@ -170,6 +176,15 @@
       <div id="progress_bar">
         <div id="progress_bar_inner"></div>
       </div>
+    </div>
+    <div class="ui-panel" id="ui_login">
+      <h1>Login</h1>
+      <input type="text" id="username" placeholder="username" />
+      <input type="password" id="password" placeholder="password" />
+      <ul class="buttons">
+        <li><a id="btn_login">Login</a></li>
+        <li><a id="btn_register">Register</a></li>
+      </ul>
     </div>
     <div class="ui-panel" id="ui_menu">
       <a class="close">X</a>

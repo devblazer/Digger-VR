@@ -97,8 +97,15 @@ const closeAllUIPanels = function(){
 };
 
 const openMenu = function(){
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('ui_taskbar').className = '';
     document.getElementById('open_menu').className += ' active';
     openPanel('ui_menu');
+};
+
+const openLogin = function(){
+    openPanel('ui_login');
 };
 
 const toggleVR = function(){
@@ -149,6 +156,18 @@ const setRedefining = function(start=null) {
         },25);
 };
 
+const check_userpass = function() {
+    if (!document.getElementById('username').value.replace(/^\s+|\s+$/g,'')) {
+        alert('Username is blank!');
+        return false;
+    }
+    if (!document.getElementById('password').value.replace(/^\s+|\s+$/g,'')) {
+        alert('Password is blank!')
+        return false;
+    }
+    return true;
+};
+
 export default class Input {
     constructor(app) {
         const p = this._private = {
@@ -161,7 +180,8 @@ export default class Input {
             axisStates: [0, 0, 0,0,0,0], // leftright, downup, forwardback
             isRedefining: null,
             isRedefiningLoop: null,
-            isVR: false
+            isVR: false,
+            loggedIn: false
         };
         this.allowPointerLock = true;
         this.allowFullScreen = true;
@@ -273,10 +293,38 @@ export default class Input {
             if (rel && !p.isRedefining)
                 setRedefining.call(me, rel);
         });
+
+        bindTap(document.getElementById('btn_login'),()=>{
+            if (!check_userpass())
+                return;
+            
+            this._private.app.attemptLogin(document.getElementById('username').value.replace(/^\s+|\s+$/g,''),document.getElementById('password').value.replace(/^\s+|\s+$/g,''),(res)=>{
+                if (res)
+                    openMenu();
+                else
+                    alert('Login failed');
+            });
+        });
+
+        bindTap(document.getElementById('btn_register'),()=>{
+            if (!check_userpass())
+                return;
+
+            this._private.app.attemptRegister(document.getElementById('username').value.replace(/^\s+|\s+$/g,''),document.getElementById('password').value.replace(/^\s+|\s+$/g,''),(res)=>{
+                if (res)
+                    alert(res);
+                else
+                    openMenu();
+            });
+        });
     }
 
     static openMenu(){
         openMenu();
+    }
+
+    static openLogin(){
+        openLogin();
     }
 
     getMouseMoved(reset=true){

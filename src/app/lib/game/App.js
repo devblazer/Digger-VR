@@ -6,6 +6,7 @@ import Comms from './../data/Comms.js';
 import Input from './Input.js';
 import Sound from './Sound.js';
 import IndexedDB from './../data/IndexedDB.js';
+import md5 from 'md5';
 
 export default class App {
     constructor(comms){
@@ -93,5 +94,34 @@ export default class App {
             document.getElementById('progress_bar').style.display = 'block';
             document.getElementById('progress_bar_inner').style.width = Math.floor(val*100)/100+'%';
         }
+    }
+    
+    attemptLogin(username,password,callback) {
+        const p = this._private;
+
+        p.comms.fetch('get_salt',username,res=>{
+            if (!res.status)
+                callback(false);
+            else
+                p.comms.fetch('attempt_login',[username,md5(password+res.salt)],res=>{
+                    if (callback)
+                        callback(res.status);
+                    else 
+                        Input.openMenu();
+                });
+        });
+    }
+
+    attemptRegister(username,password,callback) {
+        const p = this._private;
+
+        p.comms.fetch('new_salt',username,res=>{
+            if (!res.status)
+                callback('username already exists!');
+            else
+                p.comms.fetch('attempt_register',[username,md5(password+res.salt),res.salt],res=>{
+                    callback(res.status?false:'failed to create new user');
+                });
+        });
     }
 }

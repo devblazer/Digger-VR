@@ -39,20 +39,20 @@ Substitute 64 for the map size in question.  Currently tested and working: 64, 1
 + Variable block break strength
 + Basic sounds effects
 + Basic new/load game progress indicator
++ User accounts + Login
 
 **Roadmap:**
 
-+ User accounts + Login
++ Add digging visuals
++ Inventory
++ Block placement
++ More block types
 + Add camera tilt for VR mode
 + Add switch between torch/pickaxe
 + Turn god lighting into sun lighting
 + Add rudimentary diffuse lighting
-+ Add digging visuals
-+ Inventory
 + Add torch placement
-+ Block placement
 + Touch controls (already work for menu)
-+ More block types
 + Water
 + Lava
 + Hp implementation

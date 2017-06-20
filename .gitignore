@@ -9,3 +9,4 @@ private/db/*
 private/maps/generated/*/*
 npm-debug.log*
 *.mapgit pu
+src/app/credentials.json
