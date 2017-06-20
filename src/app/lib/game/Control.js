@@ -2,7 +2,7 @@ import glm from 'gl-matrix';
 import Orientation from './Orientation.js';
 import Util from './../Util.js';
 import State from './../State.js';
-import Cube from './Cube.js';
+import BlockData from './../data/BlockData.js';
 
 export default class Control {
     constructor(gameState,map,camera,cameraFace,cameraUp,input,sound){
@@ -333,7 +333,7 @@ export default class Control {
                     if (closestPoint) {
                         let block = p.map.get(closestPoint[0], closestPoint[1], closestPoint[2]);
                         if (block && block.type && block.type != 4) {
-                            block.strength -= 1 / Cube.TILE_STRENGTH[block.type];
+                            block.strength -= 1 / BlockData[block.type].strength;
                             if (block.strength <= 0) {
                                 //p.sound.play('crumble'); sounds really shit
                                 p.map.set(closestPoint[0], closestPoint[1], closestPoint[2], false);

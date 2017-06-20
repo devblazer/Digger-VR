@@ -1,3 +1,5 @@
+import BlockData from './../data/BlockData.js';
+
 const FACE_TILE_REPLICATION = [
     [0,1,1],
     [1,0,1],
@@ -16,15 +18,6 @@ const FACE_TILE_ADDITION = [
 ];
 
 const FACE2SIDE = [1,2,1,1,0,1];
-const TILES = ['empty','dirt','grass','stone','impenetrable'];
-const TILE_TEX_RENDER = [
-    [0,0,0],
-    [1,1,1],
-    [3,2,1],
-    [4,4,4],
-    [5,5,5]
-];
-
 
 let fcnt = 0;
 export default class Tile {
@@ -62,24 +55,17 @@ export default class Tile {
         return FACE2SIDE[face];
     }
 
-    static getTileName(index){
-        return TILES[index];
-    }
-    static getTileIndex(name){
-        return TILES.indexOf(name);
-    }
-
     static getTileTexForSide(ind,side){
-        return TILE_TEX_RENDER[ind][TILE_TEX_RENDER[ind].length > side ? side : 0];
+        return BlockData[ind].texFaceInd[side];
     }
     static getTileTexTop(ind){
-        return TILE_TEX_RENDER[ind][0];
+        return BlockData[ind].texFaceInd[0];
     }
     static getTileTexEdge(ind){
-        return TILE_TEX_RENDER[ind][TILE_TEX_RENDER[ind].length>1?1:0];
+        return BlockData[ind].texFaceInd[1];
     }
     static getTileTexBottom(ind){
-        return TILE_TEX_RENDER[ind][TILE_TEX_RENDER[ind].length>2?2:0];
+        return BlockData[ind].texFaceInd[2];
     }
 
     static getCount(){

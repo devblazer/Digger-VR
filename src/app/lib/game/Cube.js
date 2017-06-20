@@ -53,7 +53,4 @@ export default class Cube extends Subscription {
     export(){
         return this._private.data;
     }
-
-    static TILES = ['empty','dirt','grass','stone','impenetrable'];
-    static TILE_STRENGTH = [0,1,1,2,-1];
 }
