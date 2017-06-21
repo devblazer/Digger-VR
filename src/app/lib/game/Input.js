@@ -29,7 +29,8 @@ const KEYS = {
     50:'inv2',
     51:'inv3',
     52:'inv4',
-    53:'inv5'
+    53:'inv5',
+    16:'planar'
 };
 
 const KEYS2AXES = {
@@ -49,11 +50,7 @@ const GAMEPADAXISMAP = {
 };
 const GAMEPADBUTTONMAP = {
     6:'up',
-    7:'dig',
-    12:'inv1',
-    13:'inv2',
-    14:'inv3',
-    15:'inv4'
+    7:'dig'
 };
 const ACTIONS = [
     'dig',
@@ -61,7 +58,8 @@ const ACTIONS = [
     'inv2',
     'inv3',
     'inv4',
-    'inv5'
+    'inv5',
+    'planar'
 ];
 const MOUSE2ACTION = {
     0:'dig'
@@ -75,6 +73,7 @@ DEFINABLE_ACTIONS.set('inv2','Inventory 2');
 DEFINABLE_ACTIONS.set('inv3','Inventory 3');
 DEFINABLE_ACTIONS.set('inv4','Inventory 4');
 DEFINABLE_ACTIONS.set('inv5','Inventory 5');
+DEFINABLE_ACTIONS.set('planar','Planar Building');
 
 const MOUSE_X_SPEED = 0.3;
 const MOUSE_Y_SPEED = 0.3;
@@ -84,7 +83,7 @@ const GAMEPAD_ROTATE_SPEED = 150;
 
 const processGamepadState = ()=>{
     const gp = navigator.getGamepads()[0];
-    const actions = {moveX:0,moveY:0,moveZ:0,rotateX:0,rotateY:0,up:0,down:0,left:0,right:0,forward:0,back:0,turnLeft:0,turnRight:0,turnUp:0,turnDown:0,primary:0,dig:0,inv1:0,inv2:0,inv3:0,inv4:0,inv5:0};
+    const actions = {moveX:0,moveY:0,moveZ:0,rotateX:0,rotateY:0,up:0,down:0,left:0,right:0,forward:0,back:0,turnLeft:0,turnRight:0,turnUp:0,turnDown:0,primary:0,dig:0,inv1:0,inv2:0,inv3:0,inv4:0,inv5:0,planar:0};
 
     if (gp && gp.axes)
         gp.axes.forEach((axis,ind)=>{

@@ -3,7 +3,8 @@ import Item from './Item.js';
 export default class Inventory {
     constructor() {
         const p = this._private = {
-            slots:[]
+            slots:[],
+            pouchSlots:[]
         };
 
         this.clear();
@@ -13,8 +14,10 @@ export default class Inventory {
         const p = this._private;
 
         p.slots = [];
-        for (let i=0;i<this.constructor.ACCESS_SLOTS_COUNT;i++)
+        for (let i=0;i<this.constructor.ACCESS_SLOTS_COUNT;i++) {
+            p.pouchSlots.push(i);
             p.slots.push(null);
+        }
     }
     
     locate(type) {
@@ -27,6 +30,11 @@ export default class Inventory {
         return this._private.slots.reduce((aggr,slot,ind)=>{
             return slot===null && aggr===null ? ind : aggr;
         },null);
+    }
+
+    getPouch(slotNo){
+        const p = this._private;
+        return p.slots[p.pouchSlots[slotNo]];
     }
 
     get(slotNo) {

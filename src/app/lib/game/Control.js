@@ -24,7 +24,8 @@ export default class Control {
             cameraRight:[0,0,0],
             input,
             sound,
-            inventory
+            inventory,
+            planarSource:null
         };
         this.normalizeCameraVectors();
     }
@@ -357,26 +358,61 @@ export default class Control {
         }
     }
 
-    handleInventory() {
+    handleInventory(actions) {
         const p = this._private;
 
-        for (let i=0;i<Inventory.ACCESS_SLOTS_COUNT;i++) {
-            if (p.input.wasPressed(['inv' + i])) {
-                if (p.inventory.get(i-1)) {
-                    let item = p.inventory.get(i-1);
-                    switch (item.category) {
-                        case 'placeble_block':
-                            let target = p.map.findIntersect(p.camera, p.cameraFace, 4);
-                            if (target)
-                                if (!this.doICollideWith(target.slice(3))) {
-                                    item.qty--;
-                                    if (item.qty<=0)
-                                        p.inventory.equip(null, i-1);
-                                    p.map.set(target[3], target[4], target[5], item.getProp('typeInd'));
-                                }
-                            break;
+        if (!actions.planar) {
+            p.planarSource = null;
+            for (let i = 0; i < Inventory.ACCESS_SLOTS_COUNT; i++)
+                if (p.input.wasPressed(['inv' + i])) {
+                    if (p.inventory.getPouch(i - 1)) {
+                        let item = p.inventory.getPouch(i - 1);
+                        switch (item.category) {
+                            case 'placeble_block':
+                                let target = p.map.findIntersect(p.camera, p.cameraFace, 4);
+                                if (target)
+                                    if (!this.doICollideWith(target.slice(3))) {
+                                        item.qty--;
+                                        if (item.qty <= 0)
+                                            p.inventory.equip(null, i - 1);
+                                        p.map.set(target[3], target[4], target[5], item.getProp('typeInd'));
+                                        p.map.uploadPlotFor(target[3], target[4], target[5]);
+                                    }
+                                break;
+                        }
                     }
                 }
+        }
+        else {
+            if (!p.planarSource) {
+                let target = p.map.findIntersect(p.camera, p.cameraFace, 4);
+                if (target) {
+                    target[3] = target[0]==target[3] ? 1 : 0;
+                    target[4] = target[1]==target[4] ? 1 : 0;
+                    target[5] = target[2]==target[5] ? 1 : 0;
+                    p.planarSource = target;
+                }
+            }
+            if (p.planarSource) {
+                for (let i = 0; i < Inventory.ACCESS_SLOTS_COUNT; i++)
+                    if (actions['inv' + i]) {
+                        if (p.inventory.getPouch(i - 1)) {
+                            let item = p.inventory.getPouch(i - 1);
+                            switch (item.category) {
+                                case 'placeble_block':
+                                    let target = p.map.findPlanarIntersect(p.camera, p.cameraFace, p.planarSource, 4);
+                                    if (target && !p.map.get(target[0],target[1],target[2]).type)
+                                        if (!this.doICollideWith(target)) {
+                                            item.qty--;
+                                            if (item.qty <= 0)
+                                                p.inventory.equip(null, i - 1);
+                                            p.map.set(target[0], target[1], target[2], item.getProp('typeInd'));
+                                            p.map.uploadPlotFor(target[0], target[1], target[2]);
+                                        }
+                                    break;
+                            }
+                        }
+                    }
             }
         }
     }
@@ -387,12 +423,12 @@ export default class Control {
         const SELF_COL_HEIGHT = p.gameState.get('SELF_COL_HEIGHT');
         const SELF_EYE_HEIGHT = p.gameState.get('SELF_EYE_HEIGHT');
 
-        return (blockPos[0] >= Math.floor(p.camera[0]-SELF_COL_RADIUS-0.00001)
-            && blockPos[0] <= Math.floor(p.camera[0]+SELF_COL_RADIUS+0.00001)
-            && blockPos[1] >= Math.floor(p.camera[1]-SELF_EYE_HEIGHT-0.00001)
-            && blockPos[1] <= Math.floor(p.camera[1]-SELF_EYE_HEIGHT+SELF_COL_HEIGHT+0.00001)
-            && blockPos[2] >= Math.floor(p.camera[2]-SELF_COL_RADIUS-0.00001)
-            && blockPos[2] <= Math.floor(p.camera[2]+SELF_COL_RADIUS+0.00001)
+        return (blockPos[0] >= Math.floor(p.camera[0]-SELF_COL_RADIUS)
+            && blockPos[0] < Math.floor(p.camera[0]+SELF_COL_RADIUS)
+            && blockPos[1] >= Math.floor(p.camera[1]-SELF_EYE_HEIGHT)
+            && blockPos[1] < Math.floor(p.camera[1]-SELF_EYE_HEIGHT+SELF_COL_HEIGHT)
+            && blockPos[2] >= Math.floor(p.camera[2]-SELF_COL_RADIUS)
+            && blockPos[2] < Math.floor(p.camera[2]+SELF_COL_RADIUS)
         );
     }
 

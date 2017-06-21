@@ -248,6 +248,28 @@ export default class Map {
         return found;
     }
 
+    findPlanarIntersect(origin,vector,plane,limit) {
+        let axis = plane.slice(3).reduce((aggr,val,ind)=>{
+            return val ? aggr : ind;
+        },-1);
+        let axisShift = plane[axis]-origin[axis]+(vector[axis]<0?1:0);
+        let diff = vector.map((v,ind)=>{
+            return ind==axis ? axisShift : (axisShift / vector[axis] * v);
+        });
+        if (Util.distance(0,0,0,diff[0],diff[1],diff[2]) > limit)
+            return null;
+
+        let ret = diff.map((d,ind)=>{
+            return (ind==axis) ? plane[axis] : Math.floor(origin[ind]+d);
+        });
+        vector.forEach((v,ind)=>{
+            ret[ind+3] = ret[ind];
+        });
+        ret[axis+3] = plane[axis+3];
+
+        return ret;
+    }
+
     get(x,y,z){
         const p = this._private;
         if (x<0||x>=p.size || y<0||y>=p.size || z<0||z>=p.size)
