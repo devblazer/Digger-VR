@@ -4,6 +4,9 @@ const BLOCK_DATA = {
         ind:0,
         name:'Empty',
         digsInto:'empty',
+        spray1:[0,0,0],
+        spray2:[0,0,0],
+        sprayDensity:0,
         texFaceInd:[0,0,0],
         strength:0
     },
@@ -12,6 +15,9 @@ const BLOCK_DATA = {
         ind:1,
         name:'Dirt',
         digsInto:'dirt',
+        spray1:[54,36,7],
+        spray2:[141,116,73],
+        sprayDensity:1,
         texFaceInd:[1,1,1],
         strength:1
     },
@@ -20,6 +26,9 @@ const BLOCK_DATA = {
         ind:2,
         name:'Grass',
         digsInto:'dirt',
+        spray1:[54,36,7],
+        spray2:[141,116,73],
+        sprayDensity:1,
         texFaceInd:[3,2,1],
         strength:1
     },
@@ -28,6 +37,9 @@ const BLOCK_DATA = {
         ind:3,
         name:'Stone',
         digsInto:'stone',
+        spray1:[191,189,177],
+        spray2:[83,81,69],
+        sprayDensity:0.4,
         texFaceInd:[4,4,4],
         strength:2
     },
@@ -36,6 +48,9 @@ const BLOCK_DATA = {
         ind:4,
         name:'Impenetrable',
         digsInto:'impenetrable',
+        spray1:[0,0,0],
+        spray2:[0,0,0],
+        sprayDensity:0,
         texFaceInd:[5,5,5],
         strength:-1
     }
