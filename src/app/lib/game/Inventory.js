@@ -35,10 +35,8 @@ export default class Inventory {
     }
     
     equip(item, slotNo=null) {
-        console.log(item,item.type, slotNo);
         if (slotNo===null && item) {
             let location = this.locate(item.type);
-            console.log('location',location);
             if (location!==null) {
                 let existing = this.get(location);
                 if (existing.merge(item)) {

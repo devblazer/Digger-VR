@@ -44,7 +44,7 @@ export default class Item {
         return this._private.qty;
     }
     set qty(val) {
-        this._private.qty = qty;
+        this._private.qty = val;
     }
 
     merge(item) {

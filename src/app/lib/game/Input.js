@@ -24,7 +24,12 @@ const KEYS = {
     65:'left',
     68:'right',
     32:'up',
-    18:'down'
+    18:'down',
+    49:'inv1',
+    50:'inv2',
+    51:'inv3',
+    52:'inv4',
+    53:'inv5'
 };
 
 const KEYS2AXES = {
@@ -45,11 +50,18 @@ const GAMEPADAXISMAP = {
 const GAMEPADBUTTONMAP = {
     6:'up',
     7:'dig',
-    13:'up',
-    12:'down'
+    12:'inv1',
+    13:'inv2',
+    14:'inv3',
+    15:'inv4'
 };
 const ACTIONS = [
-    'dig'
+    'dig',
+    'inv1',
+    'inv2',
+    'inv3',
+    'inv4',
+    'inv5'
 ];
 const MOUSE2ACTION = {
     0:'dig'
@@ -58,6 +70,11 @@ const MOUSE2ACTION = {
 const DEFINABLE_ACTIONS = new Map();
 DEFINABLE_ACTIONS.set('dig','Dig');
 DEFINABLE_ACTIONS.set('up','Jump');
+DEFINABLE_ACTIONS.set('inv1','Inventory 1');
+DEFINABLE_ACTIONS.set('inv2','Inventory 2');
+DEFINABLE_ACTIONS.set('inv3','Inventory 3');
+DEFINABLE_ACTIONS.set('inv4','Inventory 4');
+DEFINABLE_ACTIONS.set('inv5','Inventory 5');
 
 const MOUSE_X_SPEED = 0.3;
 const MOUSE_Y_SPEED = 0.3;
@@ -67,7 +84,7 @@ const GAMEPAD_ROTATE_SPEED = 150;
 
 const processGamepadState = ()=>{
     const gp = navigator.getGamepads()[0];
-    const actions = {moveX:0,moveY:0,moveZ:0,rotateX:0,rotateY:0,up:0,down:0,left:0,right:0,forward:0,back:0,turnLeft:0,turnRight:0,turnUp:0,turnDown:0,primary:0,dig:0};
+    const actions = {moveX:0,moveY:0,moveZ:0,rotateX:0,rotateY:0,up:0,down:0,left:0,right:0,forward:0,back:0,turnLeft:0,turnRight:0,turnUp:0,turnDown:0,primary:0,dig:0,inv1:0,inv2:0,inv3:0,inv4:0,inv5:0};
 
     if (gp && gp.axes)
         gp.axes.forEach((axis,ind)=>{
@@ -178,6 +195,9 @@ export default class Input {
             mouseDown:[0,0,0,0,0,0,0,0],
             mouseActions:[],
             axisStates: [0, 0, 0,0,0,0], // leftright, downup, forwardback
+            keyStates:{},
+            lastActions:{},
+            actionsPressed:{},
             isRedefining: null,
             isRedefiningLoop: null,
             isVR: false,
@@ -230,12 +250,14 @@ export default class Input {
 
         document.addEventListener('keydown',e=>{
             if (!menuIsOpen && KEYS[e.which||e.keyCode]) {
+                p.keyStates[e.which||e.keyCode] = true;
                 p.axisStates[KEYS2AXES[KEYS[e.which || e.keyCode]]] = 1;
                 e.preventDefault();
             }
         },true);
         document.addEventListener('keyup',e=>{
             if (KEYS[e.which||e.keyCode]) {
+                p.keyStates[e.which||e.keyCode] = false;
                 p.axisStates[KEYS2AXES[KEYS[e.which || e.keyCode]]] = 0;
                 e.preventDefault();
             }
@@ -337,6 +359,17 @@ export default class Input {
         return mouseMoved;
     }
 
+    wasPressed(action,clear=true,interval=200) {
+        const p = this._private;
+
+        if (!p.actionsPressed[action] || p.actionsPressed[action]<(new Date()).getTime()-interval)
+            return false;
+
+        if (clear)
+            p.actionsPressed[action] = 0;
+        return true;
+    }
+
     getAllActions(delta){
         const p = this._private;
         const actions = {moveX:0,moveY:0,moveZ:0,rotateX:0,rotateY:0};
@@ -363,6 +396,19 @@ export default class Input {
         ACTIONS.forEach(action=>{
             actions[action] = gp[action] || p.mouseActions[action];
         });
+
+        for (let k in KEYS) {
+            if (KEYS[k] && DEFINABLE_ACTIONS.has(KEYS[k])) {
+                if (!actions[KEYS[k]])
+                    actions[KEYS[k]] = 0;
+                if (p.keyStates[k])
+                    actions[KEYS[k]] = 1;
+            }
+        }
+
+        for (let a in actions)
+            p.actionsPressed[a] = actions[a]&&!p.lastActions[a] ? (new Date()).getTime() : p.actionsPressed[a];
+        p.lastActions = {...actions};
 
         return actions;
     }

@@ -4,6 +4,7 @@ import Util from './../Util.js';
 import State from './../State.js';
 import BlockData from './../data/BlockData.js';
 import Item from './Item.js';
+import Inventory from './Inventory.js';
 
 export default class Control {
     constructor(gameState,map,camera,cameraFace,cameraUp,input,sound,inventory){
@@ -42,6 +43,7 @@ export default class Control {
 
         this.handleMovement(pos[0],pos[1]);
         this.handleDigging(actions);
+        this.handleInventory(actions);
     }
 
     processControls(delta,actions){
@@ -353,6 +355,45 @@ export default class Control {
             p.wasDigging = false;
             p.continuousDigging = false;
         }
+    }
+
+    handleInventory() {
+        const p = this._private;
+
+        for (let i=0;i<Inventory.ACCESS_SLOTS_COUNT;i++) {
+            if (p.input.wasPressed(['inv' + i])) {
+                if (p.inventory.get(i-1)) {
+                    let item = p.inventory.get(i-1);
+                    switch (item.category) {
+                        case 'placeble_block':
+                            let target = p.map.findIntersect(p.camera, p.cameraFace, 4);
+                            if (target)
+                                if (!this.doICollideWith(target.slice(3))) {
+                                    item.qty--;
+                                    if (item.qty<=0)
+                                        p.inventory.equip(null, i-1);
+                                    p.map.set(target[3], target[4], target[5], item.getProp('typeInd'));
+                                }
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    doICollideWith(blockPos) {
+        const p = this._private;
+        const SELF_COL_RADIUS = p.gameState.get('SELF_COL_RADIUS');
+        const SELF_COL_HEIGHT = p.gameState.get('SELF_COL_HEIGHT');
+        const SELF_EYE_HEIGHT = p.gameState.get('SELF_EYE_HEIGHT');
+
+        return (blockPos[0] >= Math.floor(p.camera[0]-SELF_COL_RADIUS-0.00001)
+            && blockPos[0] <= Math.floor(p.camera[0]+SELF_COL_RADIUS+0.00001)
+            && blockPos[1] >= Math.floor(p.camera[1]-SELF_EYE_HEIGHT-0.00001)
+            && blockPos[1] <= Math.floor(p.camera[1]-SELF_EYE_HEIGHT+SELF_COL_HEIGHT+0.00001)
+            && blockPos[2] >= Math.floor(p.camera[2]-SELF_COL_RADIUS-0.00001)
+            && blockPos[2] <= Math.floor(p.camera[2]+SELF_COL_RADIUS+0.00001)
+        );
     }
 
     normalizeCameraVectors(){

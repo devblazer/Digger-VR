@@ -183,6 +183,7 @@ export default class Map {
 
         let found = null;
         let looped = 0;
+        let nextAxis = -1;
 
         while (
             nBlock[0]>=0&&nBlock[0]<p.size
@@ -211,7 +212,7 @@ export default class Map {
             }
 
             let smallest = 2000000;
-            let nextAxis = -1;
+            nextAxis = -1;
             dist.forEach((dist, axis)=> {
                 if (dist < smallest) {
                     nextAxis = axis;
@@ -231,13 +232,18 @@ export default class Map {
             nBlock = [
                 Math.floor(pos[0]) + VECTOR_DIR[dirInd][0] * (Math.floor(pos[0])!=pos[0] || vector[nextAxis] >= 0 ? 0 : 1),
                 Math.floor(pos[1]) + VECTOR_DIR[dirInd][1] * (Math.floor(pos[1])!=pos[1] || vector[nextAxis] >= 0 ? 0 : 1),
-                Math.floor(pos[2]) + VECTOR_DIR[dirInd][2] * (Math.floor(pos[2])!=pos[2] || vector[nextAxis] >= 0 ? 0 : 1)
+                Math.floor(pos[2]) + VECTOR_DIR[dirInd][2] * (Math.floor(pos[2])!=pos[2] || vector[nextAxis] >= 0 ? 0 : 1),
             ];
 
             if (this.get(nBlock[0], nBlock[1], nBlock[2]).type) {
                 found = nBlock;
                 break;
             }
+        }
+        if (found) {
+            found[3] = found[0] + (nextAxis == 0 ? Math.sign(vector[nextAxis]) * -1 : 0);
+            found[4] = found[1] + (nextAxis == 1 ? Math.sign(vector[nextAxis]) * -1 : 0);
+            found[5] = found[2] + (nextAxis == 2 ? Math.sign(vector[nextAxis]) * -1 : 0);
         }
         return found;
     }
