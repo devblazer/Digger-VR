@@ -3,9 +3,10 @@ import Orientation from './Orientation.js';
 import Util from './../Util.js';
 import State from './../State.js';
 import BlockData from './../data/BlockData.js';
+import Item from './Item.js';
 
 export default class Control {
-    constructor(gameState,map,camera,cameraFace,cameraUp,input,sound){
+    constructor(gameState,map,camera,cameraFace,cameraUp,input,sound,inventory){
         const p = this._private = {
             orientation:new Orientation(),
             gameState,
@@ -21,7 +22,8 @@ export default class Control {
             cameraForward:[0,0,0],
             cameraRight:[0,0,0],
             input,
-            sound
+            sound,
+            inventory
         };
         this.normalizeCameraVectors();
     }
@@ -294,8 +296,6 @@ export default class Control {
                 p.lastDig += (DIG_RATE*1000);
                 let res = [];
 
-                p.sound.play('dig');
-
                 if (!p.continuousDigging)
                     res.push(p.map.findIntersect(p.camera,p.cameraFace,4));
                 else {
@@ -331,11 +331,15 @@ export default class Control {
                         }
                     });
                     if (closestPoint) {
+                        p.sound.play('dig');
                         let block = p.map.get(closestPoint[0], closestPoint[1], closestPoint[2]);
                         if (block && block.type && block.type != 4) {
                             block.strength -= 1 / BlockData[block.type].strength;
                             if (block.strength <= 0) {
                                 //p.sound.play('crumble'); sounds really shit
+                                if (BlockData[block.type].createsItem)
+                                    p.inventory.equip(new Item(BlockData[block.type].createsItem));
+
                                 p.map.set(closestPoint[0], closestPoint[1], closestPoint[2], false);
                                 p.map.uploadPlotFor(closestPoint[0], closestPoint[1], closestPoint[2]);
                             }

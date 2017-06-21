@@ -3,7 +3,7 @@ const BLOCK_DATA = {
         type:'empty',
         ind:0,
         name:'Empty',
-        digsInto:'empty',
+        createsItem:null,
         spray1:[0,0,0],
         spray2:[0,0,0],
         sprayDensity:0,
@@ -14,7 +14,7 @@ const BLOCK_DATA = {
         type:'dirt',
         ind:1,
         name:'Dirt',
-        digsInto:'dirt',
+        createsItem:'dirtBlock',
         spray1:[54,36,7],
         spray2:[141,116,73],
         sprayDensity:1,
@@ -25,7 +25,7 @@ const BLOCK_DATA = {
         type:'grass',
         ind:2,
         name:'Grass',
-        digsInto:'dirt',
+        createsItem:'dirtBlock',
         spray1:[54,36,7],
         spray2:[141,116,73],
         sprayDensity:1,
@@ -36,7 +36,7 @@ const BLOCK_DATA = {
         type:'stone',
         ind:3,
         name:'Stone',
-        digsInto:'stone',
+        createsItem:'stoneBlock',
         spray1:[191,189,177],
         spray2:[83,81,69],
         sprayDensity:0.4,
@@ -47,7 +47,7 @@ const BLOCK_DATA = {
         type:'impenetrable',
         ind:4,
         name:'Impenetrable',
-        digsInto:'impenetrable',
+        createsItem:null,
         spray1:[0,0,0],
         spray2:[0,0,0],
         sprayDensity:0,
@@ -69,8 +69,8 @@ class BlockData {
     get name() {
         return this._private.name;
     }
-    get digsInto() {
-        return this._private.digsInto;
+    get createsItem() {
+        return this._private.createsItem;
     }
     get texFaceInd() {
         return this._private.texFaceInd;

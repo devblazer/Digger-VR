@@ -2,7 +2,7 @@ import State from './../State.js';
 import Control from './Control.js';
 
 export default class Game {
-    constructor(appState,renderer,map,input,sound){
+    constructor(appState,renderer,map,input,sound,inventory){
         const stateObj = {
             SELF_COL_RADIUS:0.75,
             SELF_COL_HEIGHT:2.5,
@@ -14,6 +14,8 @@ export default class Game {
             DIG_RATE:0.4,
             MAP_SIZE:map.getSize()
         };
+
+        inventory.clear();
 
         stateObj.MASS_DIG_FACES = [
             [
@@ -60,7 +62,8 @@ export default class Game {
             [0, 0, -1],
             [0, 1, 0],
             input,
-            sound
+            sound,
+            inventory
         );
 
         p.state.set('gameActive',true);

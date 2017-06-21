@@ -20,7 +20,7 @@ const DEV_ALERT = false;
 const AUTO_LOGIN = credentials;
 
 function run() {
-    const app = new App();
+    const app = window.app = new App();
 
     if (DEV_ALERT)
         alert('WARNING!!!  Please note this game is under active development and as such your games/account may at times be deleted without any notice before, during or after the fact.');

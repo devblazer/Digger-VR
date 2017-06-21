@@ -5,6 +5,7 @@ import Renderer from './../render/Renderer.js';
 import Comms from './../data/Comms.js';
 import Input from './Input.js';
 import Sound from './Sound.js';
+import Inventory from './Inventory.js';
 import IndexedDB from './../data/IndexedDB.js';
 import md5 from 'md5';
 
@@ -20,7 +21,8 @@ export default class App {
             gamesList:[],
             db: new IndexedDB('Digger-VR'),
             sound: new Sound(),
-            lastProgress:0
+            lastProgress:0,
+            inventory: new Inventory()
         };
         p.state.set({
             mapSize:32
@@ -49,13 +51,13 @@ export default class App {
             map = new Map(p.comms, p.state.get('mapSize'),this.setProgress.bind(this));
             map.new(()=> {
                 this.setProgress();
-                p.game = new Game(p.state.export(),p.renderer,map,p.input,p.sound);
+                p.game = new Game(p.state.export(),p.renderer,map,p.input,p.sound,p.inventory);
             },p.db,gameName);
         }
         else {
             p.state.set('mapSize', map.getSize());
             this.setProgress();
-            p.game = new Game(p.state.export(), p.renderer, map, p.input,p.sound);
+            p.game = new Game(p.state.export(), p.renderer, map, p.input,p.sound,p.inventory);
         }
     }
 
@@ -73,7 +75,7 @@ export default class App {
         let map = new Map(p.comms, p.state.get('mapSize'),this.setProgress.bind(this));
         map.load(game.id,p.db,()=> {
             this.setProgress();
-            p.game = new Game(p.state.export(),p.renderer,map,p.input,p.sound);
+            p.game = new Game(p.state.export(),p.renderer,map,p.input,p.sound,p.inventory);
         });
     }
 
@@ -123,5 +125,9 @@ export default class App {
                     callback(res.status?false:'failed to create new user');
                 });
         });
+    }
+
+    get inventory() {
+        return this._private.inventory;
     }
 }
