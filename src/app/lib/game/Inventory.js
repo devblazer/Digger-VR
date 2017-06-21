@@ -70,6 +70,12 @@ export default class Inventory {
         });
         return ret;
     }
+
+    getPouchSlots() {
+        return this._private.pouchSlots.map(ind=>{
+            return this.getPouch(ind);
+        });
+    }
     
     static get ACCESS_SLOTS_COUNT() {
         return 5;

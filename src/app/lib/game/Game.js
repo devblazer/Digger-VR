@@ -14,8 +14,8 @@ export default class Game {
             DIG_RATE:0.4,
             MAP_SIZE:map.getSize()
         };
-
-        inventory.clear();
+        
+        
 
         stateObj.MASS_DIG_FACES = [
             [

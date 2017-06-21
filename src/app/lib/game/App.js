@@ -27,7 +27,7 @@ export default class App {
         p.state.set({
             mapSize:32
         });
-        p.renderer = new Renderer(p.state.export());
+        p.renderer = new Renderer(p.state.export(),p.inventory);
 
         comms.on('user_games_list',gamesList=>{
             p.gamesList = gamesList;

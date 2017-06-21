@@ -2,13 +2,16 @@ import WebGL from './WebGL.js';
 import State from './../State.js';
 import glm from 'gl-matrix';
 
+import BlockData from './../data/BlockData.js';
+
 import TileFrag from './shaders/tile/fragment.glsl';
 import TileVert from './shaders/tile/vertex.glsl';
 import GUIFrag from './shaders/gui/fragment.glsl';
 import GUIVert from './shaders/gui/vertex.glsl';
 
+let dbg = true;
 export default class Renderer {
-    constructor(appState){
+    constructor(appState,inventory){
         const p = this._private = {
             state:new State({
                 VIEW_DISTANCE:30,
@@ -18,8 +21,13 @@ export default class Renderer {
                 EYE_DISTANCE:0.2
             }),
             webGL:new WebGL(true),
-            mapSize:appState.mapSize
+            mapSize:appState.mapSize,
+            gfx:{
+                inventoryContainer: new Image()
+            },
+            inventory
         };
+        p.gfx.inventoryContainer.src = '/gfx/inventory_container.png';
 
         const webGL = p.webGL;
 
@@ -32,6 +40,8 @@ export default class Renderer {
 
         webGL.createTexture('blocks', 'textures/combined.png',false); //0
         webGL.createTexture('crosshair', 'textures/crosshair.png',false); //0
+        webGL.createTexture('inventory_container', 'textures/inventory_container.png',false); //0
+        webGL.createTexture('alphabet', 'textures/alphabet.png',false); //0
 
         webGL.createShader('tile', TileVert, TileFrag, [
                 {name: 'a_index', size: 4, count: 1, type: 'FLOAT'}
@@ -121,7 +131,8 @@ export default class Renderer {
             {name: 'a_position', size: 4, count: 3, type: 'FLOAT'},
             {name: 'a_uv', size: 4, count: 2, type: 'FLOAT'}
         ],[
-            {name: 'u_eyeOffset', type: '1f', value: 0}
+            {name: 'u_eyeOffset', type: '1f', value: 0},
+            {name: 'u_color', type: '4fv', value: [1,1,1,1]}
         ]);
     }
 
@@ -158,8 +169,8 @@ export default class Renderer {
 
         for (let e = 0; e < (isVR?2:1); e++) {
 
-            let myShader = p.webGL._private.shaders['tile'];
-            GL.useProgram(myShader.shader);
+            let tileShader = p.webGL._private.shaders['tile'];
+            GL.useProgram(tileShader.shader);
 
             let cvec = glm.vec3.create();
             glm.vec3.scale(cvec, cameraRight, (isVR?(e - 0.5):0) * EYE_DISTANCE);
@@ -171,23 +182,118 @@ export default class Renderer {
             glm.vec3.add(cvec, cvec, camera);
             webGL.renderStart(cvec, cameraFace, cameraUp, fogColor, e + (isVR?1:0),isVR?p.webGL._private.rttFramebuffer:null);
 
-            webGL.attachDataTexture('blocks',myShader.shader,31);
+            webGL.attachDataTexture('blocks',tileShader.shader,31);
 
-            webGL.render(myShader, 'TRIANGLES', p.vertexIndexTracker, cnt/(6)*6, 0, ['blocks'], {
+            webGL.render(tileShader, 'TRIANGLES', p.vertexIndexTracker, cnt/(6)*6, 0, ['blocks'], {
                 u_camera_face: cameraFace,
                 u_camera: camera,
                 u_height: depthRatio
             });
 
-            let guiVertex = new Float32Array([
+            GL.disable(GL.DEPTH_TEST);
+
+            let crossHairVertex = new Float32Array([
                 0.05, -0.05, -1.5, 1.0, 0.0,
                 0.05, 0.05, -1.5, 1.0, 1.0,
                 -0.05, 0.05, -1.5, 0.0, 1.0,
                 -0.05, -0.05, -1.5, 0.0, 0.0
             ]);
+            p.webGL.render('gui', 'TRIANGLE_FAN', crossHairVertex, 4, 0, ['crosshair'],{u_eyeOffset:(isVR?(e - 0.5):0) * EYE_DISTANCE, u_color:[1,1,1,1]});
 
-            GL.disable(GL.DEPTH_TEST);
-            p.webGL.render('gui', 'TRIANGLE_FAN', guiVertex, 4, 0, ['crosshair'],{u_eyeOffset:(isVR?(e - 0.5):0) * EYE_DISTANCE});
+            let xScale = isVR?1.2:2;
+            let yScale = 3;
+
+            let inventoryVertex = new Float32Array([
+                0.0, -0.2666*yScale, -1.5, 5.0, 0.0,
+                0.0, -0.22666*yScale, -1.5, 5.0, 1.0,
+                -0.4*xScale, -0.22666*yScale, -1.5, 0.0, 1.0,
+                -0.4*xScale, -0.2666*yScale, -1.5, 0.0, 0.0
+            ]);
+            p.webGL.render('gui', 'TRIANGLE_FAN', inventoryVertex, 4, 0, ['inventory_container'],{u_eyeOffset:(isVR?(e - 0.5):0) * EYE_DISTANCE, u_color:[1,1,1,1]});
+
+            let a = [];
+            let cnti = 0;
+            p.inventory.getPouchSlots().reverse().forEach((item,ind)=>{
+                if (item) {
+                    cnti++;
+                    let block = BlockData[item.getProp('typeInd')];
+                    let tex = block.texFaceInd[0] - 1;
+                    let yOff = Math.floor(tex / 12) * 0.078125;
+                    let xOff = (tex % 12) * 0.078125;
+
+                    a = a.concat([
+                        (-0.01333 - (0.08 * ind)) * xScale, -0.26 * yScale, -1.5, 0.0703125 + xOff, 0.0078125 + yOff,
+                        (-0.01333 - (0.08 * ind)) * xScale, -0.23333 * yScale, -1.5, 0.0703125 + xOff, 0.0703125 + yOff,
+                        (-0.06667 - (0.08 * ind)) * xScale, -0.23333 * yScale, -1.5, 0.0078125 + xOff, 0.0703125 + yOff,
+                        (-0.01333 - (0.08 * ind)) * xScale, -0.26 * yScale, -1.5, 0.0703125 + xOff, 0.0078125 + yOff,
+                        (-0.06667 - (0.08 * ind)) * xScale, -0.23333 * yScale, -1.5, 0.0078125 + xOff, 0.0703125 + yOff,
+                        (-0.06667 - (0.08 * ind)) * xScale, -0.26 * yScale, -1.5, 0.0078125 + xOff, 0.0078125 + yOff
+                    ]);
+                }
+            });
+            if (cnti) {
+                let itemVertex = new Float32Array(a);
+                p.webGL.render('gui', 'TRIANGLES', itemVertex, cnti * 6, 0, ['blocks'], {u_eyeOffset: (isVR ? (e - 0.5) : 0) * EYE_DISTANCE, u_color:[1,1,1,1]});
+            }
+
+            a = [];
+            cnti = 0;
+            p.inventory.getPouchSlots().reverse().forEach((item,ind)=>{
+                if (item) {
+                    let qty = item.qty;
+                    let numbers = [];
+                    while (qty >= 10) {
+                        numbers.push(qty%10);
+                        qty = Math.floor(qty/10);
+                    }
+                    numbers.push(qty);
+                    let width = 0.013*numbers.length;
+                    numbers.forEach((val,tenth)=> {
+                        cnti++;
+                        let us = (val%9) * 0.1015625;
+                        let vs = Math.floor(val/9)*0.1171875;
+                        let ue = us + 0.1015625;
+                        let ve = vs + 0.1171875;
+
+                        a = a.concat([
+                            (-0.005-((tenth)*0.013)-(0.08*ind)) * xScale, -0.264667 * yScale, -1.5, ue, vs,
+                            (-0.005-((tenth)*0.013)-(0.08*ind)) * xScale, -0.251333 * yScale, -1.5, ue, ve,
+                            (-0.02-((tenth)*0.013)-(0.08*ind)) * xScale, -0.251333 * yScale, -1.5, us, ve,
+                            (-0.005-((tenth)*0.013)-(0.08*ind)) * xScale, -0.264667 * yScale, -1.5, ue, vs,
+                            (-0.02-((tenth)*0.013)-(0.08*ind)) * xScale, -0.251333 * yScale, -1.5, us, ve,
+                            (-0.02-((tenth)*0.013)-(0.08*ind)) * xScale, -0.264667 * yScale, -1.5, us, vs
+                        ]);
+                    });
+                }
+            });
+            if (cnti) {
+                let itemVertex = new Float32Array(a);
+                p.webGL.render('gui', 'TRIANGLES', itemVertex, cnti * 6, 0, ['alphabet'], {u_eyeOffset: (isVR ? (e - 0.5) : 0) * EYE_DISTANCE, u_color:[1,1,1,1]});
+            }
+
+            a = [];
+            cnti = 0;
+            p.inventory.getPouchSlots().forEach((item,ind)=>{
+                cnti++;
+                let xs = (5-ind) * 0.1015625;
+                let ys = 0;
+                let xe = xs + 0.1015625;
+                let ye = 0.1171875;
+
+                a = a.concat([
+                    (-0.06 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xe, ys,
+                    (-0.06 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xe, ye,
+                    (-0.075 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xs, ye,
+                    (-0.06 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xe, ys,
+                    (-0.075 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xs, ye,
+                    (-0.075 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xs, ys
+                ]);
+            });
+            if (cnti) {
+                let itemVertex = new Float32Array(a);
+                p.webGL.render('gui', 'TRIANGLES', itemVertex, cnti * 6, 0, ['alphabet'], {u_eyeOffset: (isVR ? (e - 0.5) : 0) * EYE_DISTANCE, u_color:[1,1,0,1]});
+            }
+
             GL.enable(GL.DEPTH_TEST);
         }
 

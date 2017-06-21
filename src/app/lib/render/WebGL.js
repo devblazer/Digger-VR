@@ -221,6 +221,10 @@ export default class WebGL {
         initGl.call(this);
     }
 
+    getCanvas() {
+        return this._private.canvas;
+    }
+
     createShader(shaderName, vertexShader, fragmentShader, attributes, uniforms=[]) {
         const self = this._private;
         var _vertexShader = getShader.call(this, self.gl.VERTEX_SHADER, vertexShader);
