@@ -88,18 +88,25 @@ export default class Sound {
             volumeFactor: 0.6
         },
         dig:{
+            src:'/sound/326840_johnbuhr_sword-clash-20.ogg',
+            loop: false,
+            minInterval: 1,
+            maxPlay: 3,
+            volumeFactor: 0.6
+        },
+        crumble:{
             src:'/sound/150838_toxicwafflezz_bullet-impact-2.ogg',
             loop: false,
             minInterval: 1,
             maxPlay: 3,
-            volumeFactor: 0.15
+            volumeFactor: 0.35
         },
-        crumble:{
-            src:'/sound/dirt_crumble_custom.ogg',
+        blockPlacement:{
+            src:'/sound/321810_mmasonghi_blocking-arm-with-hand.ogg',
             loop: false,
             minInterval: 1,
-            maxPlay: 1,
-            volumeFactor: 0.7
+            maxPlay: 20,
+            volumeFactor: 3
         },
         walk:{
             src:'/sound/98491_tec-studios_walking1-gravel.ogg',

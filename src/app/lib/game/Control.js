@@ -334,18 +334,19 @@ export default class Control {
                         }
                     });
                     if (closestPoint) {
-                        p.sound.play('dig');
                         let block = p.map.get(closestPoint[0], closestPoint[1], closestPoint[2]);
                         if (block && block.type && block.type != 4) {
                             block.strength -= 1 / BlockData[block.type].strength;
                             if (block.strength <= 0) {
-                                //p.sound.play('crumble'); sounds really shit
+                                p.sound.play('crumble');
                                 if (BlockData[block.type].createsItem)
                                     p.inventory.equip(new Item(BlockData[block.type].createsItem));
 
                                 p.map.set(closestPoint[0], closestPoint[1], closestPoint[2], false);
                                 p.map.uploadPlotFor(closestPoint[0], closestPoint[1], closestPoint[2]);
                             }
+                            else
+                                p.sound.play('dig');
                         }
                     }
                 }
@@ -375,6 +376,7 @@ export default class Control {
                                         item.qty--;
                                         if (item.qty <= 0)
                                             p.inventory.equip(null, i - 1);
+                                        p.sound.play('blockPlacement');
                                         p.map.set(target[3], target[4], target[5], item.getProp('typeInd'));
                                         p.map.uploadPlotFor(target[3], target[4], target[5]);
                                     }
@@ -406,6 +408,7 @@ export default class Control {
                                             item.qty--;
                                             if (item.qty <= 0)
                                                 p.inventory.equip(null, i - 1);
+                                            p.sound.play('blockPlacement');
                                             p.map.set(target[0], target[1], target[2], item.getProp('typeInd'));
                                             p.map.uploadPlotFor(target[0], target[1], target[2]);
                                         }
