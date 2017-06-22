@@ -59,21 +59,32 @@ const ACTIONS = [
     'inv3',
     'inv4',
     'inv5',
-    'planar'
+    'planar',
+    'prevInv',
+    'nextInv',
+    'useInv'
 ];
 const MOUSE2ACTION = {
-    0:'dig'
+    0:'dig',
+    2:'useInv'
 };
+const MOUSEWHEELACTIONS = [
+    'prevInv',
+    'nextInv'
+];
 
 const DEFINABLE_ACTIONS = new Map();
 DEFINABLE_ACTIONS.set('dig','Dig');
 DEFINABLE_ACTIONS.set('up','Jump');
-DEFINABLE_ACTIONS.set('inv1','Inventory 1');
-DEFINABLE_ACTIONS.set('inv2','Inventory 2');
-DEFINABLE_ACTIONS.set('inv3','Inventory 3');
-DEFINABLE_ACTIONS.set('inv4','Inventory 4');
-DEFINABLE_ACTIONS.set('inv5','Inventory 5');
+DEFINABLE_ACTIONS.set('inv1','Belt 1');
+DEFINABLE_ACTIONS.set('inv2','Belt 2');
+DEFINABLE_ACTIONS.set('inv3','Belt 3');
+DEFINABLE_ACTIONS.set('inv4','Belt 4');
+DEFINABLE_ACTIONS.set('inv5','Belt 5');
 DEFINABLE_ACTIONS.set('planar','Planar Building');
+DEFINABLE_ACTIONS.set('prevInv','Belt previous');
+DEFINABLE_ACTIONS.set('nextInv','Belt next');
+DEFINABLE_ACTIONS.set('useInv','Belt use');
 
 const MOUSE_X_SPEED = 0.3;
 const MOUSE_Y_SPEED = 0.3;
@@ -192,6 +203,7 @@ export default class Input {
             mouseXmoved: 0,
             mouseYmoved: 0,
             mouseDown:[0,0,0,0,0,0,0,0],
+            mouseWheel:0,
             mouseActions:[],
             axisStates: [0, 0, 0,0,0,0], // leftright, downup, forwardback
             keyStates:{},
@@ -338,6 +350,10 @@ export default class Input {
                     openMenu();
             });
         });
+
+        document.addEventListener("wheel", e=>{
+            p.mouseWheel += e.wheelDelta>0 ? 1 : -1;
+        });
     }
 
     static openMenu(){
@@ -393,8 +409,9 @@ export default class Input {
         });
 
         ACTIONS.forEach(action=>{
-            actions[action] = gp[action] || p.mouseActions[action];
+            actions[action] = gp[action] || p.mouseActions[action] || (((p.mouseWheel?MOUSEWHEELACTIONS[(p.mouseWheel/2)+0.5]:'~')==action)?1:0);
         });
+        p.mouseWheel = 0;
 
         for (let k in KEYS) {
             if (KEYS[k] && DEFINABLE_ACTIONS.has(KEYS[k])) {

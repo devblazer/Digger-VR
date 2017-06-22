@@ -362,12 +362,19 @@ export default class Control {
     handleInventory(actions) {
         const p = this._private;
 
+        if (actions.nextInv) 
+            p.inventory.beltNext();
+        if (actions.prevInv)
+            p.inventory.beltPrev();
+        if (actions.useInv)
+            actions['inv'+(p.inventory.beltSelected+1)] = 1;
+
         if (!actions.planar) {
             p.planarSource = null;
-            for (let i = 0; i < Inventory.ACCESS_SLOTS_COUNT; i++)
-                if (p.input.wasPressed(['inv' + i])) {
-                    if (p.inventory.getPouch(i - 1)) {
-                        let item = p.inventory.getPouch(i - 1);
+            for (let i = 0; i < Inventory.POUCH_SLOTS_COUNT; i++)
+                if (p.input.wasPressed('inv' + i) || (i==(p.inventory.beltSelected+1) && p.input.wasPressed('useInv'))) {
+                    if (p.inventory.getBelt(i - 1)) {
+                        let item = p.inventory.getBelt(i - 1);
                         switch (item.category) {
                             case 'placeble_block':
                                 let target = p.map.findIntersect(p.camera, p.cameraFace, 4);
@@ -396,10 +403,10 @@ export default class Control {
                 }
             }
             if (p.planarSource) {
-                for (let i = 0; i < Inventory.ACCESS_SLOTS_COUNT; i++)
+                for (let i = 0; i < Inventory.POUCH_SLOTS_COUNT; i++)
                     if (actions['inv' + i]) {
-                        if (p.inventory.getPouch(i - 1)) {
-                            let item = p.inventory.getPouch(i - 1);
+                        if (p.inventory.getBelt(i - 1)) {
+                            let item = p.inventory.getBelt(i - 1);
                             switch (item.category) {
                                 case 'placeble_block':
                                     let target = p.map.findPlanarIntersect(p.camera, p.cameraFace, p.planarSource, 4);

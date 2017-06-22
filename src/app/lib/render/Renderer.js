@@ -213,7 +213,7 @@ export default class Renderer {
 
             let a = [];
             let cnti = 0;
-            p.inventory.getPouchSlots().reverse().forEach((item,ind)=>{
+            p.inventory.getBeltSlots().reverse().forEach((item,ind)=>{
                 if (item) {
                     cnti++;
                     let block = BlockData[item.getProp('typeInd')];
@@ -238,7 +238,7 @@ export default class Renderer {
 
             a = [];
             cnti = 0;
-            p.inventory.getPouchSlots().reverse().forEach((item,ind)=>{
+            p.inventory.getBeltSlots().reverse().forEach((item,ind)=>{
                 if (item) {
                     let qty = item.qty;
                     let numbers = [];
@@ -247,7 +247,7 @@ export default class Renderer {
                         qty = Math.floor(qty/10);
                     }
                     numbers.push(qty);
-                    let width = 0.013*numbers.length;
+
                     numbers.forEach((val,tenth)=> {
                         cnti++;
                         let us = (val%9) * 0.1015625;
@@ -273,26 +273,44 @@ export default class Renderer {
 
             a = [];
             cnti = 0;
-            p.inventory.getPouchSlots().forEach((item,ind)=>{
-                cnti++;
-                let xs = (5-ind) * 0.1015625;
-                let ys = 0;
-                let xe = xs + 0.1015625;
-                let ye = 0.1171875;
+            p.inventory.getBeltSlots().forEach((item,ind)=>{
+                if (4-ind!=p.inventory.beltSelected) {
+                    cnti++;
+                    let xs = (5 - ind) * 0.1015625;
+                    let ys = 0;
+                    let xe = xs + 0.1015625;
+                    let ye = 0.1171875;
 
-                a = a.concat([
-                    (-0.06 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xe, ys,
-                    (-0.06 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xe, ye,
-                    (-0.075 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xs, ye,
-                    (-0.06 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xe, ys,
-                    (-0.075 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xs, ye,
-                    (-0.075 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xs, ys
-                ]);
+                    a = a.concat([
+                        (-0.06 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xe, ys,
+                        (-0.06 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xe, ye,
+                        (-0.075 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xs, ye,
+                        (-0.06 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xe, ys,
+                        (-0.075 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xs, ye,
+                        (-0.075 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xs, ys
+                    ]);
+                }
             });
-            if (cnti) {
-                let itemVertex = new Float32Array(a);
-                p.webGL.render('gui', 'TRIANGLES', itemVertex, cnti * 6, 0, ['alphabet'], {u_eyeOffset: (isVR ? (e - 0.5) : 0) * EYE_DISTANCE, u_color:[1,1,0,1]});
-            }
+            let itemVertex = new Float32Array(a);
+            p.webGL.render('gui', 'TRIANGLES', itemVertex, cnti * 6, 0, ['alphabet'], {u_eyeOffset: (isVR ? (e - 0.5) : 0) * EYE_DISTANCE, u_color:[1,1,0,1]});
+
+            let ind = 4-p.inventory.beltSelected;
+            cnti++;
+            let xs = (5 - ind) * 0.1015625;
+            let ys = 0;
+            let xe = xs + 0.1015625;
+            let ye = 0.1171875;
+
+            a = [
+                (-0.06 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xe, ys,
+                (-0.06 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xe, ye,
+                (-0.075 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xs, ye,
+                (-0.06 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xe, ys,
+                (-0.075 - (0.08 * ind)) * xScale, -0.22866 * yScale, -1.5, xs, ye,
+                (-0.075 - (0.08 * ind)) * xScale, -0.242 * yScale, -1.5, xs, ys
+            ];
+            itemVertex = new Float32Array(a);
+            p.webGL.render('gui', 'TRIANGLES', itemVertex, 6, 0, ['alphabet'], {u_eyeOffset: (isVR ? (e - 0.5) : 0) * EYE_DISTANCE, u_color:[0.2,1,0.2,1]});
 
             GL.enable(GL.DEPTH_TEST);
         }

@@ -4,7 +4,8 @@ export default class Inventory {
     constructor() {
         const p = this._private = {
             slots:[],
-            pouchSlots:[]
+            beltSlots:[],
+            beltSelected:0
         };
 
         this.clear();
@@ -14,8 +15,8 @@ export default class Inventory {
         const p = this._private;
 
         p.slots = [];
-        for (let i=0;i<this.constructor.ACCESS_SLOTS_COUNT;i++) {
-            p.pouchSlots.push(i);
+        for (let i=0;i<this.constructor.POUCH_SLOTS_COUNT;i++) {
+            p.beltSlots.push(i);
             p.slots.push(null);
         }
     }
@@ -32,9 +33,27 @@ export default class Inventory {
         },null);
     }
 
-    getPouch(slotNo){
+    beltNext() {
         const p = this._private;
-        return p.slots[p.pouchSlots[slotNo]];
+
+        p.beltSelected++;
+        if (p.beltSelected==this.constructor.POUCH_SLOTS_COUNT)
+            p.beltSelected = 0;
+    }
+    beltPrev() {
+        const p = this._private;
+
+        p.beltSelected--;
+        if (p.beltSelected<0)
+            p.beltSelected = this.constructor.POUCH_SLOTS_COUNT-1;
+    }
+    get beltSelected() {
+        return this._private.beltSelected;
+    }
+
+    getBelt(slotNo){
+        const p = this._private;
+        return p.slots[p.beltSlots[slotNo]];
     }
 
     get(slotNo) {
@@ -71,13 +90,13 @@ export default class Inventory {
         return ret;
     }
 
-    getPouchSlots() {
-        return this._private.pouchSlots.map(ind=>{
-            return this.getPouch(ind);
+    getBeltSlots() {
+        return this._private.beltSlots.map(ind=>{
+            return this.getBelt(ind);
         });
     }
     
-    static get ACCESS_SLOTS_COUNT() {
+    static get POUCH_SLOTS_COUNT() {
         return 5;
     } 
 }
