@@ -37,15 +37,16 @@ Substitute 64 for the map size in question.  Currently tested and working: 64, 1
 + Local save of world data for fast loading (indexedDB)
 + Basic UI + menu (already touch enabled)
 + Variable block break strength
-+ Basic sounds effects
++ Sounds effects
 + Basic new/load game progress indicator
 + User accounts + Login
++ Inventory belt display and usage
++ Block placement
 
 **Roadmap:**
 
 + Add digging visuals
-+ Inventory
-+ Block placement
++ Open inventory system
 + More block types
 + Add camera tilt for VR mode
 + Add switch between torch/pickaxe
