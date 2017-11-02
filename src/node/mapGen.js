@@ -28,8 +28,6 @@ if (process.argv[2] && process.argv[2].split('=')[0] == '--gen') {
             blanks += data ? 0 : 1;
             var intb = data?Math.floor(data.length/256):0;
             var ints = data?(data.length%256):0;
-            console.log(x,y,z);
-            console.log(intb,ints);
             stream.write(new Buffer([intb,ints], 'ascii'));
             inc+=2;
             if (data)

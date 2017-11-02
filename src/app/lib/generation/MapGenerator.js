@@ -24,20 +24,31 @@ export default class MapGenerator {
         const p = this._private;
         const startTime = (new Date()).getTime();
 
+        let tunnels = 0;
+        switch (p.size) {
+            case 64:
+                skyRows = 12;
+                tunnels = 6;
+                break;
+            case 128:
+                skyRows = 24;
+                tunnels = 48;
+                break;
+            case 256:
+                skyRows = 48;
+                tunnels = 385;
+                break;
+            case 512:
+                skyRows = 96;
+                tunnels = 3000;
+                break;
+            default:
+                throw new Error('invalid map size, should be one of: 64, 128, 256, 512');
+        }
+
         this.continent(skyRows);
         this.minerals(skyRows);
-
-        let tunnels;
-        if (p.size<64)
-            tunnels = 5;
-        else if (p.size<128)
-            tunnels = 15;
-        else if (p.size<256)
-            tunnels = 35;
-        else if (p.size<512)
-            tunnels = 125;
-        else
-            tunnels = 375;
+//        p.map.fill(0,p.size-8-1,0,TILE_INDEX_GRASS,p.size,1,p.size);
 
         let lastP = -1;
 
@@ -46,7 +57,12 @@ export default class MapGenerator {
             if (newP != lastP)
                 console.log('Gen Cave: '+newP+'%');
             lastP = newP;
-            this.tunnelNetwork(null,skyRows+2,null,0,TILE_INDEX_EMPTY);
+            let tunnelTile = TILE_INDEX_EMPTY;
+            this.tunnelNetwork(null,skyRows+2,null,0,tunnelTile);
+            for (let m=0;m<3;m++)
+                this.tunnelNetwork(null,skyRows+2,null,Math.floor(Math.random()*5)+1,tunnelTile);
+            for (let m=0;m<10;m++)
+                this.tunnelNetwork(null,skyRows+2,null,Math.floor(Math.random()*2)+1,tunnelTile);
         }
 
         this.addFloor();
@@ -113,42 +129,59 @@ export default class MapGenerator {
         p.map.fill(0,0,0,TILE_INDEX_IMPENETRABLE,p.size,1,p.size);
     }
 
-    minerals(skyRows=8,type=3,ratio=0.5) {
+    minerals(skyRows=8,type=3,ratio=0.4) {
         const p = this._private;
-        let tiles = Math.pow(p.size,3)*ratio;
+        let tiles = (Math.pow(p.size,3)-(Math.pow(p.size,2)*skyRows))*ratio;
 
         let lastCount = -1;
-        for (let n=0;n<tiles/10;n++) {
-            let newCount = Math.floor(n/(tiles/10)*100);
-            if (newCount != lastCount)
-                console.log('Minerals type '+type+': '+newCount+'%');
-            lastCount = newCount;
-            let y = Math.floor(Math.random() * (p.size - skyRows));
-            let s = (((Math.random() * 3) + 0.5) * (y / (p.size) * skyRows));
-            this.splatter(Math.floor(Math.random() * (p.size+10))-5, p.size-(y + skyRows+2)-1, Math.floor(Math.random() * (p.size+10))-5, (s/8)+0.6,(s/6)+0.6,type);
+        let placed = 0;
+        while (placed < tiles) {
+            for (let n = 0; n < tiles / 10; n++) {
+                let newCount = Math.floor(Math.min(placed, tiles) / tiles * 100);
+                if (newCount != lastCount)
+                    console.log('Minerals type ' + type + ': ' + newCount + '%');
+                lastCount = newCount;
+                let y = Math.floor(Math.random() * (p.size - skyRows));
+                let s = (((Math.random() * 20) + 5) * (y / (p.size - skyRows)));
+                placed += this.splatter(
+                    Math.floor(Math.random() * (p.size + 10)) - 5,
+                    p.size - (y + skyRows + 2) - 1,
+                    Math.floor(Math.random() * (p.size + 10)) - 5,
+                    (s / 6) + 0.7,
+                    (s / 4) + 1,
+                    type
+                );
+            }
         }
     }
 
     sphere(x,y,z,r,val,callback=()=>{return true;}){
         const p = this._private;
+        let placed = 0;
         for (let sx=Math.max(0,Math.round(x+0.5-r)); sx<=Math.min(p.size-1,Math.round(x+0.5+r)); sx++) {
             for (let sy=Math.max(0,Math.round(y+0.5-r)); sy<=Math.min(p.size-1,Math.round(y+0.5+r)); sy++)
                 for (let sz=Math.max(0,Math.round(z+0.5-r)); sz<=Math.min(p.size-1,Math.round(z+0.5+r)); sz++) {
-                    if (callback(sx,sy,sz) && Math.sqrt(Math.pow(sx-x,2)+Math.pow(sy-y,2)+Math.pow(sz-z,2))<=r)
+                    if (callback(sx,sy,sz) && Math.sqrt(Math.pow(sx-x,2)+Math.pow(sy-y,2)+Math.pow(sz-z,2))<=r) {
+                        if (p.map.get(sx,sy,sz).type != val)
+                            placed++;
                         p.map.set(sx, sy, sz, val);
+                    }
                 }
         }
+        return placed;
     }
 
     splatter(x,y,z,r,spots,val,callback=()=>{return true;}){
         let tiles = Math.pow(r*2,3)/2;
         let spotR = Math.cbrt(tiles/spots*2)/3;
+        let placed = 0;
 
         for (let c=0;c<spots*2;c++){
             let v = Util.randomVector3();
             let d = Math.sin(Util.deg2Rad(Math.random()*90));
-            this.sphere(x+(v[0]*d),y+(v[1]*d),z+(v[2]*d),((Math.random()*1.5)+0.5)*spotR,val,callback);
+            placed += this.sphere(x+(v[0]*d),y+(v[1]*d),z+(v[2]*d),((Math.random()*1.5)+0.5)*spotR,val,callback);
         }
+        return placed;
     }
 
     inBounds(x,y,z){

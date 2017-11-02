@@ -153,7 +153,8 @@ export default class Renderer {
         const GL = p.webGL._private.gl;
         const webGL = p.webGL;
 
-        const depthRatio = Math.min(1, Math.max(0, (p.mapSize - camera[1] - 8) / 10));
+        const depthRatio = Math.min(1, Math.max(0, (map.getSize() - camera[1] - map.getSize()/5) / 8));
+
         const fogColor = [
             (FOG_SKY_COLOR[0] * (1 - depthRatio)) + (FOG_UNDERGROUND_COLOR[0] * depthRatio),
             (FOG_SKY_COLOR[1] * (1 - depthRatio)) + (FOG_UNDERGROUND_COLOR[1] * depthRatio),
