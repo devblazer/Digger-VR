@@ -1,4 +1,4 @@
-require("babel-register")({presets:['stage-2','es2015']});
+require("babel-register")({presets:['stage-2','env']});
 
 Array.prototype.random = function(){
   return this[Math.floor(Math.random()*this.length)];

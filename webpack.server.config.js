@@ -22,7 +22,7 @@ var config = {
     // I highly recommend using the babel-loader as it gives you
     // ES6/7 syntax and JSX transpiling out of the box
     {
-      test: /\.jsx?$/,
+      test: /\.js$/,
       loader: 'babel',
       exclude: [nodeModulesPath],
       query: {

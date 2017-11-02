@@ -26,7 +26,9 @@ export default class Renderer {
             gfx:{
                 inventoryContainer: new Image()
             },
-            inventory
+            inventory,
+            mainVertexBufferKeep:true,
+            barrelVertexBufferKeep:true
         };
         p.gfx.inventoryContainer.src = '/gfx/inventory_container.png';
 
@@ -186,11 +188,11 @@ export default class Renderer {
 
             webGL.attachDataTexture('blocks',tileShader.shader,31);
 
-            webGL.render(tileShader, 'TRIANGLES', p.vertexIndexTracker, cnt/(6)*6, 0, ['blocks'], {
+            p.mainVertexBufferKeep = webGL.render(tileShader, 'TRIANGLES', p.vertexIndexTracker, cnt/(6)*6, 0, ['blocks'], {
                 u_camera_face: cameraFace,
                 u_camera: camera,
                 u_height: depthRatio
-            });
+            }, null, p.mainVertexBufferKeep);
 
             GL.disable(GL.DEPTH_TEST);
 
@@ -319,7 +321,7 @@ export default class Renderer {
 
         if (isVR) {
             p.webGL.endBarrelCapture();
-            p.webGL.renderBarrel(0);
+            p.barrelVertexBufferKeep = p.webGL.renderBarrel(0, p.barrelVertexBufferKeep);
         }
     }
 };

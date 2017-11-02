@@ -29,11 +29,11 @@ var config = {
     // I highly recommend using the babel-loader as it gives you
     // ES6/7 syntax and JSX transpiling out of the box
     {
-      test: /\.jsx?$/,
+      test: /\.js$/,
       loader: 'babel',
       exclude: /(node_modules|bower_components)/,
       query: {
-        presets: ['es2015','stage-2']
+        presets: ['env','stage-2']
       }
     },
 

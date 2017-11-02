@@ -14,6 +14,7 @@ const VECTOR_DIR = [
     [0,1,0],
     [0,0,1]
 ];
+const jsMap = window.Map;
 
 export default class Map {
     constructor(comms,size,setProgress) {
@@ -24,7 +25,7 @@ export default class Map {
             renderBuff:new Uint8Array(1024*1024),
             sectors:[],
             plots:[],
-            sectorCache:[],
+            sectorCache:new jsMap(),
             comms,
             mapTable:null,
             setProgress
@@ -134,7 +135,7 @@ export default class Map {
         if (!p.sectors[str])
             this.loadSector(x,y,z);
         else if (updateModified)
-            p.sectorCache.filter(cache=>{return cache.hash==str})[0].modified = (new Date()).getTime();
+            p.sectorCache.get(str).modified = (new Date()).getTime();
         return p.sectors[str];
     }
     loadSector(x,y,z){
@@ -145,18 +146,22 @@ export default class Map {
 
         sector.load(p.plots[x][y][z]);
         p.sectors[str] = sector;
-        if (p.sectorCache.length == SECTOR_CACHE_LIMIT) {
-            p.sectorCache.sort((a,b)=>{
+        if (p.sectorCache.size == SECTOR_CACHE_LIMIT) {
+            let newMap = new jsMap();
+            [...p.sectorCache.values()].sort((a,b)=>{
                 return a.modified < b.modified;
+            }).forEach(sector=>{
+                newMap.set(sector.hash, sector)
             });
-            if (this.autoSave) {
-                let sec = p.sectorCache[0];
-                p.sectors[sec.hash].save(p.plots[sec.x][sec.y][sec.z]);
-            }
-            delete(p.sectors[p.sectorCache[0].hash]);
-            p.sectorCache.shift();
+            p.sectorCache = newMap;
+            let firstSector = p.sectorCache.values().next().value;
+
+            if (this.autoSave)
+                p.sectors[firstSector.hash].save(p.plots[firstSector.x][firstSector.y][firstSector.z]);
+            delete(p.sectors[firstSector.hash]);
+            p.sectorCache.delete(firstSector.hash);
         }
-        p.sectorCache.push({hash:str,x,y,z,modified:(new Date()).getTime()});
+        p.sectorCache.set(str,{hash:str,x,y,z,modified:(new Date()).getTime()});
     }
 
     uploadPlotFor(x,y,z) {
@@ -372,14 +377,11 @@ export default class Map {
         p.plots[x][y][z].import(buffer);
 
         let str = x+'_'+y+'_'+z;
-        let secFound = -1;
-        p.sectorCache.forEach((ind,sec)=>{
-            if (sec.hash==str)
-                secFound = ind;
-        });
-        if (secFound>-1) {
+        let secFound = p.sectorCache.has(str)
+        if (secFound) {
+            secFound = p.sectorCache.get(str);
             delete(p.sectors[str]);
-            p.sectorCache.splice(secFound,1);
+            p.sectorCache.delete(secFound.hash);
         }
    }
 

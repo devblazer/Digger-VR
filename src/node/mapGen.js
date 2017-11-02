@@ -1,4 +1,4 @@
-require("babel-register")({presets:['stage-2','es2015']});
+require("babel-register")({presets:['stage-2','env']});
 
 var express = require('express');
 var fs = require('fs');

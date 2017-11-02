@@ -5,7 +5,7 @@ import postRenderVertex from './shaders/postRender/vertex.glsl';
 import postRenderFragment from './shaders/postRender/fragment.glsl';
 
 var glm = require('gl-matrix');
-
+var tester = 0;
 const getShader = function( type, shaderImport) {
     var shader = this._private.gl.createShader(type);
     this._private.gl.shaderSource(shader, shaderImport);
@@ -134,15 +134,17 @@ const makeTranslation = function(tx, ty, tz){
     ];
 };
 
-const initBuffer = function(glELEMENT_ARRAY_BUFFER, data){
+const initBuffer = function(glELEMENT_ARRAY_BUFFER, data, bufferToReuse=null){
     const self = this._private;
-    var buf = self.gl.createBuffer();
+    var buf = (bufferToReuse&&bufferToReuse!==true) ? bufferToReuse : self.gl.createBuffer();
     self.gl.bindBuffer(glELEMENT_ARRAY_BUFFER, buf);
-    self.gl.bufferData(glELEMENT_ARRAY_BUFFER, data, self.gl.DYNAMIC_DRAW);
+    if (!bufferToReuse||bufferToReuse===true)
+        self.gl.bufferData(glELEMENT_ARRAY_BUFFER, data, self.gl.DYNAMIC_DRAW);
+
     return buf;
 };
 
-const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={}){
+const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={},bufferToReuse=null){
     const self = this._private;
     if (typeof shaderName=='string') {
         var shader = self.shaders[shaderName];
@@ -162,7 +164,7 @@ const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={})
         self.gl.uniform1i(self.gl.getUniformLocation(shaderProgram,'tex'+ind),ind);
     });
 
-    self.vbuf = initBuffer.call(this,self.gl.ARRAY_BUFFER, vtx);
+    self.vbuf = initBuffer.call(this,self.gl.ARRAY_BUFFER, vtx, bufferToReuse);
     if (idx)
         self.ibuf = initBuffer.call(this, self.gl.ELEMENT_ARRAY_BUFFER, idx);
     var cumulative = 0;
@@ -174,14 +176,17 @@ const initBuffers = function(shaderName, vtx, idx=null, textures=[],uniforms={})
     shader.uniforms.forEach(uniform=>{
         self.gl['uniform'+uniform.type](shaderProgram[uniform.name+'Uniform'],typeof uniforms[uniform.name]=='undefined' ? uniform.value : uniforms[uniform.name]);
     });
+
+    return self.vbuf;
 };
 
-const unbindBuffers = function(shaderName){
+const unbindBuffers = function(shaderName, keepBuffer=false){
     const self = this._private;
     self.gl.bindBuffer(self.gl.ARRAY_BUFFER, null);
     self.gl.bindBuffer(self.gl.ELEMENT_ARRAY_BUFFER, null);
     self.gl.bindTexture(self.gl.TEXTURE_2D,null);
-    self.gl.deleteBuffer(self.vbuf);
+    if (!keepBuffer)
+        self.gl.deleteBuffer(self.vbuf);
 
     if (typeof shaderName=='string') {
         var shader = self.shaders[shaderName];
@@ -312,12 +317,13 @@ export default class WebGL {
         initScene.call(this,camera,lookAt,up,clearColor,mode,renderTargetMetrics);
     }
 
-    render(shader, primitiveType, vertexBuffer, primitiveCount, offset=0,textures=[],uniforms={},target=null){
+    render(shader, primitiveType, vertexBuffer, primitiveCount, offset=0,textures=[],uniforms={},target=null,bufferToReuse=null){
         const self = this._private;
 
-        initBuffers.call(this,shader,vertexBuffer,null,textures,uniforms);
+        let buf = initBuffers.call(this,shader,vertexBuffer,null,textures,uniforms,bufferToReuse);
         self.gl.drawArrays(self.gl[primitiveType],offset, primitiveCount);
-        unbindBuffers.call(this,shader);
+        unbindBuffers.call(this,shader,bufferToReuse);
+        return buf;
     }
 
     startBarrelCapture(){
@@ -332,7 +338,7 @@ export default class WebGL {
         self.gl.bindFramebuffer(self.gl.FRAMEBUFFER, null);
     }
 
-    renderBarrel(eyeMode){
+    renderBarrel(eyeMode,bufferToReuse=null){
         const self = this._private;
         if (self.showFPS && eyeMode<2)
             self.fps++;
@@ -342,9 +348,11 @@ export default class WebGL {
         let barrel = this.makeBarrelDistortionBuffer();
         let vertexBuffer = new Float32Array(barrel);
 
-        initBuffers.call(this,'postRender',vertexBuffer,null,[self.rttTexture]);
+        let buf = initBuffers.call(this,'postRender',vertexBuffer,null,[self.rttTexture],{},null,bufferToReuse);
         self.gl.drawArrays(self.gl.TRIANGLES, 0, barrel.length/4);
-        unbindBuffers.call(this,'postRender');
+        unbindBuffers.call(this,'postRender',bufferToReuse);
+
+        return buf;
     }
 
     makeBarrelDistortionBuffer(){
