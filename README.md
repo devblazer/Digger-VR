@@ -1,5 +1,7 @@
 # Digger VR
 
+DiggerVR is actively looking for contributors, feel free to get in touch if you can contribute in any way: devblazer[at]gmail[dot]com
+
 A browser based 'Minecraft' meets 'Terraria' kind of idea with things like gamepad and VR support thrown in the mix.
 ![Screenshot](https://devblazer.github.io/Host/Screenshot_2017-04-05-10-10-06.jpg)
 

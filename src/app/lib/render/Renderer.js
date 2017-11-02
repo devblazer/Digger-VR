@@ -1,6 +1,5 @@
 import WebGL from './WebGL.js';
 import State from './../State.js';
-import glm from 'gl-matrix';
 
 import BlockData from './../data/BlockData.js';
 
@@ -8,6 +7,8 @@ import TileFrag from './shaders/tile/fragment.glsl';
 import TileVert from './shaders/tile/vertex.glsl';
 import GUIFrag from './shaders/gui/fragment.glsl';
 import GUIVert from './shaders/gui/vertex.glsl';
+
+var glm = require('gl-matrix');
 
 let dbg = true;
 export default class Renderer {

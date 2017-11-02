@@ -1,8 +1,8 @@
 import Sector from './Sector.js';
 import Plot from './Plot.js';
-import glm from 'gl-matrix';
 import Util from './../Util.js';
 import SplitBuffer from './../data/SplitBuffer.js';
+var glm = require('gl-matrix');
 
 const SECTOR_CACHE_LIMIT = 400;
 

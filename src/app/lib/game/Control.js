@@ -1,10 +1,10 @@
-import glm from 'gl-matrix';
 import Orientation from './Orientation.js';
 import Util from './../Util.js';
 import State from './../State.js';
 import BlockData from './../data/BlockData.js';
 import Item from './Item.js';
 import Inventory from './Inventory.js';
+var glm = require('gl-matrix');
 
 export default class Control {
     constructor(gameState,map,camera,cameraFace,cameraUp,input,sound,inventory){
