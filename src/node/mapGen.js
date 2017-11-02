@@ -33,8 +33,6 @@ if (process.argv[2] && process.argv[2].split('=')[0] == '--gen') {
             if (data)
                 stream.write(data);
         });
-        console.log(total, lots, blanks);
         stream.end();
-        console.log(size);
     });
 }
