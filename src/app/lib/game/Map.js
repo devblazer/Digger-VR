@@ -14,9 +14,8 @@ const VECTOR_DIR = [
     [0,1,0],
     [0,0,1]
 ];
-const jsMap = window.Map;
 
-export default class Map {
+export default class Map_ {
     constructor(comms,size,setProgress) {
         size -= size%8;
         this._private = {
@@ -25,7 +24,7 @@ export default class Map {
             renderBuff:new Uint8Array(1024*1024),
             sectors:[],
             plots:[],
-            sectorCache:new jsMap(),
+            sectorCache:new Map(),
             comms,
             mapTable:null,
             setProgress
@@ -147,7 +146,7 @@ export default class Map {
         sector.load(p.plots[x][y][z]);
         p.sectors[str] = sector;
         if (p.sectorCache.size == SECTOR_CACHE_LIMIT) {
-            let newMap = new jsMap();
+            let newMap = new Map();
             [...p.sectorCache.values()].sort((a,b)=>{
                 return a.modified < b.modified;
             }).forEach(sector=>{
