@@ -349,13 +349,11 @@ export default class Map_ {
                 }
             }
         }
-        let pos = 0;
-        arrs.forEach(u8v=> {
-            vertexData.set(u8v, pos);
-            pos += u8v.buffer.byteLength;
-        });
 
-        return pos;
+        vertexData.reset();
+        arrs.forEach(u8v=> {
+            vertexData.add(u8v);
+        });
     }
 
     exportSector(x,y,z){

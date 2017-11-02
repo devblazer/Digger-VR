@@ -1,5 +1,6 @@
 import WebGL from './WebGL.js';
 import State from './../State.js';
+import SplitVertexImageBuffer from './splitVertexImageBuffer.js';
 
 import BlockData from './../data/BlockData.js';
 
@@ -35,7 +36,7 @@ export default class Renderer {
         const webGL = p.webGL;
 
         const TEX_DATA_WIDTH = p.state.get('TEX_DATA_WIDTH');
-        p.vertexData = webGL.createDataTexture('blocks',TEX_DATA_WIDTH);
+        p.vertexData = new SplitVertexImageBuffer('blockVertexData',webGL,TEX_DATA_WIDTH);
 
         p.vertexIndexTracker = new Float32Array(TEX_DATA_WIDTH*TEX_DATA_WIDTH);
         for (let n=0;n<TEX_DATA_WIDTH*TEX_DATA_WIDTH;n++)
@@ -164,9 +165,11 @@ export default class Renderer {
             (FOG_SKY_COLOR[2] * (1 - depthRatio)) + (FOG_UNDERGROUND_COLOR[2] * depthRatio)
         ];
 
-        let cnt = map.getForRender(camera, cameraFace, VIEW_DISTANCE + 5,p.vertexData);
+        map.getForRender(camera, cameraFace, VIEW_DISTANCE + 5,p.vertexData);
 
-        webGL.updateDataTexture('blocks');
+        p.vertexData.forEach(bufferObj=>{
+            webGL.updateDataTexture(bufferObj.name);
+        });
 
         if (isVR)
             p.webGL.startBarrelCapture();
@@ -186,13 +189,14 @@ export default class Renderer {
             glm.vec3.add(cvec, cvec, camera);
             webGL.renderStart(cvec, cameraFace, cameraUp, fogColor, e + (isVR?1:0),isVR?p.webGL._private.rttFramebuffer:null);
 
-            webGL.attachDataTexture('blocks',tileShader.shader,31);
-
-            p.mainVertexBufferKeep = webGL.render(tileShader, 'TRIANGLES', p.vertexIndexTracker, cnt/(6)*6, 0, ['blocks'], {
-                u_camera_face: cameraFace,
-                u_camera: camera,
-                u_height: depthRatio
-            }, null, p.mainVertexBufferKeep);
+            p.vertexData.forEach(bufferObj=>{
+                webGL.attachDataTexture(bufferObj.name, tileShader.shader, 31);
+                p.mainVertexBufferKeep = webGL.render(tileShader, 'TRIANGLES', p.vertexIndexTracker, bufferObj.used / (6) * 6, 0, ['blocks'], {
+                    u_camera_face: cameraFace,
+                    u_camera: camera,
+                    u_height: depthRatio
+                }, null, p.mainVertexBufferKeep);
+            });
 
             GL.disable(GL.DEPTH_TEST);
 
