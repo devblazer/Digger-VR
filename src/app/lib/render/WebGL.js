@@ -1,9 +1,10 @@
 import Util from './../Util.js';
 import $ from 'jquery';
-import glm from 'gl-matrix';
 import THREE from 'three';
 import postRenderVertex from './shaders/postRender/vertex.glsl';
 import postRenderFragment from './shaders/postRender/fragment.glsl';
+
+var glm = require('gl-matrix');
 
 const getShader = function( type, shaderImport) {
     var shader = this._private.gl.createShader(type);

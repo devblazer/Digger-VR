@@ -1,5 +1,5 @@
 import THREE from 'three';
-import glm from 'gl-matrix';
+var glm = require('gl-matrix');
 
 export default class Orientation {
     constructor() {

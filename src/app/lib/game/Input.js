@@ -112,7 +112,7 @@ const processGamepadState = ()=>{
 
 const bindTap = function(el,callback,bubble=false) {
     el.addEventListener('click',callback,bubble);
-    el.addEventListener('touchstart',callback,bubble);
+    //el.addEventListener('touchstart',callback,bubble);
 };
 
 let menuIsOpen = false;
