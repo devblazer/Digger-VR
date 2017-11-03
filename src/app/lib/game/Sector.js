@@ -108,10 +108,10 @@ export default class Sector extends Cube {
                     tiles.forEach(tile=> {
                         for (let f = 0; f < 6; f++) {
                             let s = Tile.getSide(f);
-                            let t = Tile.getTileTexForSide(type.substr(1)/1,s);
+                            let t = Tile.getTileTexForSide(type/1,s);
 
                             let size = Math.pow(2, tile[3]);
-                            let res = checkFace((tile[0]*size)+p.x, (tile[1]*size)+p.y, (tile[2]*size)+p.z, size, f,map);
+                            let res = true;//turns out this hurts performance by about 20% !     checkFace((tile[0]*size)+p.x, (tile[1]*size)+p.y, (tile[2]*size)+p.z, size, f,map);
 
                             if (res) {
                                 Tile.addFace((tile[0] * size) + p.x, (tile[1] * size) + p.y, (tile[2] * size) + p.z, size, f, t, p.renderData);

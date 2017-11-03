@@ -80,9 +80,9 @@ export default class Plot {
                     for (let z=0;z<oSize/span;z++) {
                         if (typeof parser[d][x][y][z] != 'undefined' && parser[d][x][y][z] !== EMPTY_VALUE)
                             if (typeof parser[d+1]=='undefined' || typeof parser[d+1][Math.floor(x / 2)][Math.floor(y / 2)][Math.floor(z / 2)] == 'undefined') {
-                                if (!newData['t'+parser[d][x][y][z]])
-                                    newData['t'+parser[d][x][y][z]] = [];
-                                newData['t'+parser[d][x][y][z]].push([x,y,z,d]);
+                                if (!newData[parser[d][x][y][z]])
+                                    newData[parser[d][x][y][z]] = [];
+                                newData[parser[d][x][y][z]].push([x,y,z,d]);
                             }
                     }
             }
@@ -108,7 +108,7 @@ export default class Plot {
                     let init2b = x + (y << 3) + (z << 6) + (d << 9);
                     newData.push(init2b >> 8);
                     newData.push(init2b & 255);
-                    newData.push(p.substr(1) / 1);
+                    newData.push(p / 1);
                 });
             }
 

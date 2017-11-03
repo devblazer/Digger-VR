@@ -16,7 +16,7 @@ export default class Renderer {
     constructor(appState,inventory){
         const p = this._private = {
             state:new State({
-                VIEW_DISTANCE:30,
+                VIEW_DISTANCE:60,
                 TEX_DATA_WIDTH:1024,
                 FOG_SKY_COLOR:[0.3, 0.65, 1.0],
                 FOG_UNDERGROUND_COLOR:[0.0, 0.0, 0.0],

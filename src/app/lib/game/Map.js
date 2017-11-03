@@ -4,7 +4,7 @@ import Util from './../Util.js';
 import SplitBuffer from './../data/SplitBuffer.js';
 var glm = require('gl-matrix');
 
-const SECTOR_CACHE_LIMIT = 400;
+const SECTOR_CACHE_LIMIT = Math.ceil(Math.pow(60,3)/30);
 
 const VECTOR_DIR = [
     [-1,0,0],
