@@ -9,5 +9,5 @@ private/db/*
 private/maps/generated/*/*
 npm-debug.log*
 *.mapgit pu
-.DS_Store
+*.DS_Store
 src/app/credentials.json
